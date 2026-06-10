@@ -1,0 +1,96 @@
+.map-page {
+  height: 100%;
+  position: relative;
+}
+
+/* ── Leaflet container ──────────────────────────────────────────────────────── */
+.leaflet-map {
+  height: 100%;
+  width: 100%;
+  background: #1a1a2e;
+}
+
+/* ── Header overlay ─────────────────────────────────────────────────────────── */
+.map-header {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(15, 15, 35, 0.85);
+  padding: 0.5rem 1.5rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.map-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #e0e0e0;
+}
+
+.map-subtitle {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+/* ── Gallery pin marker ─────────────────────────────────────────────────────── */
+.gallery-pin {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4fc3f7;
+  border: 3px solid #fff;
+  box-shadow: 0 0 6px rgba(79, 195, 247, 0.7);
+}
+
+/* ── Popup ──────────────────────────────────────────────────────────────────── */
+.gallery-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 130px;
+}
+
+.gallery-popup strong {
+  font-size: 0.95rem;
+  color: #111;
+}
+
+.gallery-popup-count {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.gallery-popup-link {
+  font-size: 0.85rem;
+  color: #0077cc;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.gallery-popup-link:hover {
+  text-decoration: underline;
+}
+
+/* ── No-GPS notice ──────────────────────────────────────────────────────────── */
+.map-empty-notice {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(15, 15, 35, 0.85);
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  color: #aaa;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
