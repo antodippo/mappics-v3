@@ -38,7 +38,19 @@ public class ExtractExifDataWithMetadataExtractor implements ExifExtractor {
         if (dir == null) return null;
         GeoLocation location = dir.getGeoLocation();
         if (location == null || location.isZero()) return null;
-        return new GpsCoordinates(location.getLatitude(), location.getLongitude());
+        return new GpsCoordinates(location.getLatitude(), location.getLongitude(), extractAltitude(dir));
+    }
+
+    private Double extractAltitude(GpsDirectory dir) {
+        Rational r = dir.getRational(GpsDirectory.TAG_ALTITUDE);
+        if (r == null) return null;
+        double alt = r.doubleValue();
+        try {
+            int ref = dir.getInt(GpsDirectory.TAG_ALTITUDE_REF);
+            return ref == 1 ? -alt : alt;
+        } catch (Exception e) {
+            return alt;
+        }
     }
 
     private ExifData extractExifData(Metadata metadata) {

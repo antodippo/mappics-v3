@@ -37,7 +37,12 @@ public final class Gallery {
         }
         double avgLat = coordinates.stream().mapToDouble(GpsCoordinates::latitude).average().orElseThrow();
         double avgLon = coordinates.stream().mapToDouble(GpsCoordinates::longitude).average().orElseThrow();
-        return Optional.of(new GpsCoordinates(avgLat, avgLon));
+        double[] alts = coordinates.stream().filter(c -> c.altitude() != null)
+                .mapToDouble(GpsCoordinates::altitude).toArray();
+        Double avgAlt = alts.length > 0
+                ? java.util.Arrays.stream(alts).average().orElse(0)
+                : null;
+        return Optional.of(new GpsCoordinates(avgLat, avgLon, avgAlt));
     }
 
     private static String formatName(String id) {

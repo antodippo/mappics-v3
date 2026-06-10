@@ -26,7 +26,7 @@ class ProcessUploadedGalleriesTest {
 
     private static final String WEATHER_RESPONSE = """
             {"hourly":{"time":["2017-06-09T18:00"],"temperature_2m":[10.5],
-             "relative_humidity_2m":[72],"weather_code":[1]}}
+             "relative_humidity_2m":[72],"weather_code":[1],"wind_speed_10m":[9.2]}}
             """;
 
     private GalleryFileStorageInMemory fileStorage;
@@ -101,7 +101,7 @@ class ProcessUploadedGalleriesTest {
         Picture partial = Picture.create("iceland/DSC_0114.JPG", "iceland", "DSC_0114.JPG")
                 .withExifData(new ExifData("Sony", "F5121",
                         java.time.LocalDateTime.of(2017, 6, 9, 18, 43, 32), null, null, null))
-                .withGpsCoordinates(new GpsCoordinates(64.26, -21.12))
+                .withGpsCoordinates(new GpsCoordinates(64.26, -21.12, null))
                 .withProcessedImages("http://localhost/thumb.jpg", "http://localhost/full.jpg");
         repository.savePicture(partial);
 

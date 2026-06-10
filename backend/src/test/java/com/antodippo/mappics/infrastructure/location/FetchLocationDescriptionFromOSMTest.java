@@ -43,7 +43,7 @@ class FetchLocationDescriptionFromOSMTest {
     void extractsCityAsNameAndDisplayNameAsDescription() {
         var fetcher = fetcherWith(AZORES_RESPONSE);
 
-        Optional<LocationDescription> result = fetcher.fetch(new GpsCoordinates(37.84, -25.79));
+        Optional<LocationDescription> result = fetcher.fetch(new GpsCoordinates(37.84, -25.79, null));
 
         assertTrue(result.isPresent());
         assertEquals("Ponta Delgada", result.get().name());
@@ -54,7 +54,7 @@ class FetchLocationDescriptionFromOSMTest {
     void fallsBackToStateWhenNoCityOrTownPresent() {
         var fetcher = fetcherWith(NO_CITY_RESPONSE);
 
-        Optional<LocationDescription> result = fetcher.fetch(new GpsCoordinates(64.13, -21.89));
+        Optional<LocationDescription> result = fetcher.fetch(new GpsCoordinates(64.13, -21.89, null));
 
         assertTrue(result.isPresent());
         assertEquals("Capital Region", result.get().name());
@@ -64,7 +64,7 @@ class FetchLocationDescriptionFromOSMTest {
     void returnsEmptyWhenResponseLacksDisplayName() {
         var fetcher = fetcherWith("{}");
 
-        assertTrue(fetcher.fetch(new GpsCoordinates(0, 0)).isEmpty());
+        assertTrue(fetcher.fetch(new GpsCoordinates(0, 0, null)).isEmpty());
     }
 
     @Test
@@ -74,7 +74,7 @@ class FetchLocationDescriptionFromOSMTest {
                 MAPPER
         );
 
-        assertTrue(fetcher.fetch(new GpsCoordinates(37.84, -25.79)).isEmpty());
+        assertTrue(fetcher.fetch(new GpsCoordinates(37.84, -25.79, null)).isEmpty());
     }
 
     @Test
@@ -82,7 +82,7 @@ class FetchLocationDescriptionFromOSMTest {
         var httpClient = new HTTPClientThatAlwaysReturns(AZORES_RESPONSE);
         var fetcher = new FetchLocationDescriptionFromOSM(httpClient, MAPPER);
 
-        fetcher.fetch(new GpsCoordinates(37.839183, -25.793508));
+        fetcher.fetch(new GpsCoordinates(37.839183, -25.793508, null));
 
         String url = httpClient.getLastUrl();
         assertTrue(url.contains("37.839183"), "URL should contain latitude");

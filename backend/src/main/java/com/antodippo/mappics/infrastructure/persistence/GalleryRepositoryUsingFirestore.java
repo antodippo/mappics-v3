@@ -86,6 +86,7 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
         gallery.getAverageGpsCoordinates().ifPresent(gps -> {
             m.put("averageLatitude", gps.latitude());
             m.put("averageLongitude", gps.longitude());
+            if (gps.altitude() != null) m.put("averageAltitude", gps.altitude());
         });
         return m;
     }
@@ -100,6 +101,7 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
         picture.getGpsCoordinates().ifPresent(gps -> {
             m.put("gpsLatitude", gps.latitude());
             m.put("gpsLongitude", gps.longitude());
+            if (gps.altitude() != null) m.put("gpsAltitude", gps.altitude());
         });
         // Nested sub-documents: presence of the key signals the field was extracted.
         picture.getExifData().ifPresent(exif -> m.put("exif", exifToMap(exif)));
@@ -127,6 +129,7 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
         return Map.of(
                 "temperatureCelsius", weather.temperatureCelsius(),
                 "humidity", weather.humidity(),
+                "windSpeedKmh", weather.windSpeedKmh(),
                 "weatherCode", weather.weatherCode(),
                 "description", weather.description()
         );
@@ -141,7 +144,8 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
         List<String> pictureIds = (List<String>) doc.get("pictureIds");
         Double lat = doc.getDouble("averageLatitude");
         Double lon = doc.getDouble("averageLongitude");
-        GpsCoordinates avgGps = lat != null ? new GpsCoordinates(lat, lon) : null;
+        Double avgAlt = doc.getDouble("averageAltitude");
+        GpsCoordinates avgGps = lat != null ? new GpsCoordinates(lat, lon, avgAlt) : null;
         return new Gallery(id, name, pictureIds != null ? pictureIds : List.of(), avgGps);
     }
 
@@ -155,6 +159,7 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
 
         Double lat = doc.getDouble("gpsLatitude");
         Double lon = doc.getDouble("gpsLongitude");
+        Double alt = doc.getDouble("gpsAltitude");
 
         return new Picture(
                 doc.getString("id"),
@@ -162,7 +167,7 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
                 doc.getString("originalFilename"),
                 doc.getString("thumbnailUrl"),
                 doc.getString("fullSizeUrl"),
-                lat != null ? new GpsCoordinates(lat, lon) : null,
+                lat != null ? new GpsCoordinates(lat, lon, alt) : null,
                 exifMap != null ? exifFromMap(exifMap) : null,
                 locationMap != null ? locationFromMap(locationMap) : null,
                 weatherMap != null ? weatherFromMap(weatherMap) : null
@@ -187,13 +192,15 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
     }
 
     private static WeatherData weatherFromMap(Map<String, Object> m) {
-        Number temp     = (Number) m.get("temperatureCelsius");
-        Number humidity = (Number) m.get("humidity");
-        Number code     = (Number) m.get("weatherCode");
+        Number temp      = (Number) m.get("temperatureCelsius");
+        Number humidity  = (Number) m.get("humidity");
+        Number windSpeed = (Number) m.get("windSpeedKmh");
+        Number code      = (Number) m.get("weatherCode");
         return new WeatherData(
-                temp     != null ? temp.doubleValue() : 0,
-                humidity != null ? humidity.intValue() : 0,
-                code     != null ? code.intValue() : 0,
+                temp      != null ? temp.doubleValue()     : 0,
+                humidity  != null ? humidity.intValue()    : 0,
+                windSpeed != null ? windSpeed.doubleValue(): 0,
+                code      != null ? code.intValue()        : 0,
                 (String) m.get("description")
         );
     }

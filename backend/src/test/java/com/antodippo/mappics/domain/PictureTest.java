@@ -38,7 +38,7 @@ class PictureTest {
     @Test
     void withMethodsReturnNewInstanceLeavingOriginalUnchanged() {
         Picture original = Picture.create("gallery/photo.jpg", "gallery", "photo.jpg");
-        GpsCoordinates gps = new GpsCoordinates(51.5, -0.1);
+        GpsCoordinates gps = new GpsCoordinates(51.5, -0.1, null);
 
         Picture enriched = original.withGpsCoordinates(gps);
 
@@ -49,10 +49,10 @@ class PictureTest {
 
     @Test
     void enrichmentChainBuildsAFullPicture() {
-        GpsCoordinates gps = new GpsCoordinates(51.5, -0.1);
+        GpsCoordinates gps = new GpsCoordinates(51.5, -0.1, null);
         ExifData exif = new ExifData("Nikon", "D750", null, "35mm", "f/4", 200);
         LocationDescription location = new LocationDescription("London", "Capital of UK");
-        WeatherData weather = new WeatherData(14.0, 72, 2, "Partly cloudy");
+        WeatherData weather = new WeatherData(14.0, 72, 0.0, 2, "Partly cloudy");
 
         Picture picture = Picture.create("g/p.jpg", "g", "p.jpg")
                 .withProcessedImages("https://example.com/thumb.jpg", "https://example.com/full.jpg")

@@ -9,10 +9,10 @@ public class PictureBuilder {
     private String originalFilename = "photo.jpg";
     private String thumbnailUrl = "https://example.com/thumb.jpg";
     private String fullSizeUrl = "https://example.com/full.jpg";
-    private GpsCoordinates gpsCoordinates = new GpsCoordinates(51.5, -0.1);
+    private GpsCoordinates gpsCoordinates = new GpsCoordinates(51.5, -0.1, null);
     private ExifData exifData = new ExifData("Canon", "EOS 5D", LocalDateTime.of(2023, 6, 15, 14, 30), "50mm", "f/2.8", 100);
     private LocationDescription locationDescription = new LocationDescription("London", "Capital of the United Kingdom");
-    private WeatherData weatherData = new WeatherData(18.5, 65, 1, "Mainly clear");
+    private WeatherData weatherData = new WeatherData(18.5, 65, 0.0, 1, "Mainly clear");
 
     public PictureBuilder withId(String id) { this.id = id; return this; }
     public PictureBuilder withGalleryId(String galleryId) { this.galleryId = galleryId; return this; }

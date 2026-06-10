@@ -22,12 +22,13 @@ class FetchWeatherDataFromOpenMeteoTest {
                 "time":                 ["2017-08-24T10:00","2017-08-24T11:00","2017-08-24T12:00","2017-08-24T13:00"],
                 "temperature_2m":       [21.5, 22.0, 23.1, 22.8],
                 "relative_humidity_2m": [68,   65,   62,   64],
-                "weather_code":         [1,    1,    0,    1]
+                "weather_code":         [1,    1,    0,    1],
+                "wind_speed_10m":       [14.2, 12.8,  8.5, 10.1]
               }
             }
             """;
 
-    private final GpsCoordinates azores = new GpsCoordinates(37.84, -25.79);
+    private final GpsCoordinates azores = new GpsCoordinates(37.84, -25.79, null);
 
     @Test
     void picksHourClosestToTakenAt() {
@@ -36,6 +37,7 @@ class FetchWeatherDataFromOpenMeteoTest {
 
         assertEquals(23.1, weather.temperatureCelsius(), 0.01);
         assertEquals(62,   weather.humidity());
+        assertEquals(8.5,  weather.windSpeedKmh(), 0.01);
         assertEquals(0,    weather.weatherCode());
         assertEquals("Clear sky", weather.description());
     }
@@ -80,7 +82,7 @@ class FetchWeatherDataFromOpenMeteoTest {
         var httpClient = new HTTPClientThatAlwaysReturns(RESPONSE);
         var fetcher = new FetchWeatherDataFromOpenMeteo(httpClient, MAPPER);
 
-        fetcher.fetch(new GpsCoordinates(37.839183, -25.793508), LocalDateTime.of(2017, 8, 24, 12, 7));
+        fetcher.fetch(new GpsCoordinates(37.839183, -25.793508, null), LocalDateTime.of(2017, 8, 24, 12, 7));
 
         String url = httpClient.getLastUrl();
         assertTrue(url.contains("37.839183"),  "URL should contain latitude");

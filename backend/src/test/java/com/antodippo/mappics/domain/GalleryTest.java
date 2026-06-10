@@ -13,9 +13,9 @@ class GalleryTest {
     @Test
     void averageGpsIsCalculatedFromAllCoordinates() {
         List<GpsCoordinates> coords = List.of(
-                new GpsCoordinates(10.0, 20.0),
-                new GpsCoordinates(20.0, 40.0),
-                new GpsCoordinates(30.0, 60.0)
+                new GpsCoordinates(10.0, 20.0, null),
+                new GpsCoordinates(20.0, 40.0, null),
+                new GpsCoordinates(30.0, 60.0, null)
         );
 
         GpsCoordinates avg = Gallery.calculateAverageGps(coords).orElseThrow();
@@ -31,7 +31,7 @@ class GalleryTest {
 
     @Test
     void averageGpsOfSingleCoordinateIsItself() {
-        GpsCoordinates single = new GpsCoordinates(48.8566, 2.3522);
+        GpsCoordinates single = new GpsCoordinates(48.8566, 2.3522, null);
 
         GpsCoordinates avg = Gallery.calculateAverageGps(List.of(single)).orElseThrow();
 

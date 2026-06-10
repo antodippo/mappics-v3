@@ -66,7 +66,7 @@ public class GalleryController {
                 picture.getLocationDescription().map(loc ->
                         new LocationResponse(loc.name(), loc.shortDescription())).orElse(null),
                 picture.getWeatherData().map(w ->
-                        new WeatherResponse(w.temperatureCelsius(), w.humidity(), w.weatherCode(), w.description())).orElse(null)
+                        new WeatherResponse(w.temperatureCelsius(), w.humidity(), w.windSpeedKmh(), w.weatherCode(), w.description())).orElse(null)
         );
     }
 
@@ -83,9 +83,9 @@ public class GalleryController {
 
     // ── Response records ──────────────────────────────────────────────────────
 
-    record GpsResponse(double latitude, double longitude) {
+    record GpsResponse(double latitude, double longitude, Double altitude) {
         static GpsResponse from(GpsCoordinates gps) {
-            return new GpsResponse(gps.latitude(), gps.longitude());
+            return new GpsResponse(gps.latitude(), gps.longitude(), gps.altitude());
         }
     }
 
@@ -127,6 +127,7 @@ public class GalleryController {
     record WeatherResponse(
             double temperatureCelsius,
             int humidity,
+            double windSpeedKmh,
             int weatherCode,
             String description
     ) {}

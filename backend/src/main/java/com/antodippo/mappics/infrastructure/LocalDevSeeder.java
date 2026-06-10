@@ -100,7 +100,7 @@ public class LocalDevSeeder implements ApplicationRunner {
                     .withExifData(exif.exifData())
                     .withProcessedImages(localUrl, localUrl)
                     .withLocationDescription(new LocationDescription(galleryId, galleryId + " area"))
-                    .withWeatherData(new WeatherData(18.0, 60, 1, "Mainly clear"));
+                    .withWeatherData(new WeatherData(18.0, 60, 12.0, 1, "Mainly clear"));
 
             repository.savePicture(picture);
             galleryGps.computeIfAbsent(galleryId, k -> new ArrayList<>())

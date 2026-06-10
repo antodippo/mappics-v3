@@ -1,3 +1,3 @@
 package com.antodippo.mappics.domain;
 
-public record GpsCoordinates(double latitude, double longitude) {}
+public record GpsCoordinates(double latitude, double longitude, Double altitude) {}

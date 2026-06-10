@@ -133,6 +133,11 @@
   margin-top: 0.5rem;
 }
 
+.coords {
+  font-family: monospace;
+  font-size: 0.78rem;
+}
+
 .exif-chips span {
   font-size: 0.75rem;
   background: #1e1e35;

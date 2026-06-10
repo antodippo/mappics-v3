@@ -37,7 +37,7 @@ class GalleryControllerTest {
     void listGalleries_returnsSummaryForEachGallery() throws Exception {
         Gallery iceland = Gallery.create("iceland")
                 .withPictureIds(List.of("iceland/p1.jpg", "iceland/p2.jpg"))
-                .withAverageGpsCoordinates(new GpsCoordinates(64.26, -21.12));
+                .withAverageGpsCoordinates(new GpsCoordinates(64.26, -21.12, null));
         Gallery azores = Gallery.create("azores")
                 .withPictureIds(List.of("azores/p3.jpg"));
 
@@ -140,10 +140,10 @@ class GalleryControllerTest {
                 "4.2mm", "f/2.0", 40);
         Picture picture = Picture.create("iceland/p.JPG", "iceland", "p.JPG")
                 .withExifData(exif)
-                .withGpsCoordinates(new GpsCoordinates(64.26, -21.12))
+                .withGpsCoordinates(new GpsCoordinates(64.26, -21.12, null))
                 .withProcessedImages("http://t.jpg", "http://f.jpg")
                 .withLocationDescription(new LocationDescription("Reykjavik", "Iceland"))
-                .withWeatherData(new WeatherData(10.5, 72, 1, "Mainly clear"));
+                .withWeatherData(new WeatherData(10.5, 72, 8.5, 1, "Mainly clear"));
 
         when(repository.findById("iceland")).thenReturn(Optional.of(gallery));
         when(repository.findPicturesByGalleryId("iceland")).thenReturn(List.of(picture));
@@ -152,6 +152,7 @@ class GalleryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.pictures[0].exif.takenAt").value("2017-06-09T18:43:32"))
                 .andExpect(jsonPath("$.pictures[0].exif.iso").value(40))
-                .andExpect(jsonPath("$.pictures[0].weather.humidity").value(72));
+                .andExpect(jsonPath("$.pictures[0].weather.humidity").value(72))
+                .andExpect(jsonPath("$.pictures[0].weather.windSpeedKmh").value(8.5));
     }
 }

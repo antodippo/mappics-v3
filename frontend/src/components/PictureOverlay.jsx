@@ -64,7 +64,6 @@ export default function PictureOverlay({ picture, index, total, onClose, onPrev,
               <MapContainer
                 center={[gps.latitude, gps.longitude]}
                 zoom={13}
-                scrollWheelZoom={false}
                 zoomControl={false}
                 attributionControl={false}
                 className="mini-map"
@@ -81,6 +80,18 @@ export default function PictureOverlay({ picture, index, total, onClose, onPrev,
               <h3>Location</h3>
               <p className="info-primary">{picture.location.name}</p>
               <p className="info-secondary">{picture.location.shortDescription}</p>
+            </section>
+          )}
+
+          {gps && (
+            <section className="info-section">
+              <h3>GPS</h3>
+              <p className="info-secondary coords">
+                {gps.latitude.toFixed(5)}°, {gps.longitude.toFixed(5)}°
+              </p>
+              {gps.altitude != null && (
+                <p className="info-secondary">{Math.round(gps.altitude)} m altitude</p>
+              )}
             </section>
           )}
 
@@ -109,7 +120,10 @@ export default function PictureOverlay({ picture, index, total, onClose, onPrev,
               <p className="info-primary">
                 {picture.weather.temperatureCelsius.toFixed(1)} °C · {picture.weather.description}
               </p>
-              <p className="info-secondary">Humidity {picture.weather.humidity}%</p>
+              <div className="exif-chips">
+                <span>💧 {picture.weather.humidity}%</span>
+                <span>💨 {picture.weather.windSpeedKmh.toFixed(1)} km/h</span>
+              </div>
             </section>
           )}
         </aside>

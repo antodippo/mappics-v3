@@ -23,7 +23,7 @@ public class FetchWeatherDataFromOpenMeteo implements WeatherFetcher {
     private static final String API_URL =
             "https://archive-api.open-meteo.com/v1/archive" +
             "?latitude=%s&longitude=%s&start_date=%s&end_date=%s" +
-            "&hourly=temperature_2m,relative_humidity_2m,weather_code&timezone=auto";
+            "&hourly=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto";
     // Open-Meteo returns times as "yyyy-MM-ddTHH:mm" (no seconds, no offset).
     private static final DateTimeFormatter HOURLY_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
@@ -56,15 +56,18 @@ public class FetchWeatherDataFromOpenMeteo implements WeatherFetcher {
         JsonNode temperatures = hourly.get("temperature_2m");
         JsonNode humidities   = hourly.get("relative_humidity_2m");
         JsonNode weatherCodes = hourly.get("weather_code");
+        JsonNode windSpeeds   = hourly.get("wind_speed_10m");
 
         if (times == null || times.isEmpty()) return Optional.empty();
 
         int i = closestHourIndex(times, takenAt);
         int code = weatherCodes.get(i).asInt();
+        double windSpeed = windSpeeds != null ? windSpeeds.get(i).asDouble() : 0.0;
 
         return Optional.of(new WeatherData(
                 temperatures.get(i).asDouble(),
                 humidities.get(i).asInt(),
+                windSpeed,
                 code,
                 WmoWeatherCode.describe(code)
         ));

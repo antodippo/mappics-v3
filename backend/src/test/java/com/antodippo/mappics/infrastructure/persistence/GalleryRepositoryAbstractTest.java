@@ -38,7 +38,7 @@ abstract class GalleryRepositoryAbstractTest {
     void savesGalleryWithAverageGpsAndPictureIds() {
         Gallery gallery = Gallery.create("azores")
                 .withPictureIds(List.of("azores/p1.jpg", "azores/p2.jpg"))
-                .withAverageGpsCoordinates(new GpsCoordinates(37.84, -25.79));
+                .withAverageGpsCoordinates(new GpsCoordinates(37.84, -25.79, null));
 
         repository.save(gallery);
 
@@ -113,7 +113,7 @@ abstract class GalleryRepositoryAbstractTest {
         Picture original = Picture.create("iceland/DSC_0001.JPG", "iceland", "DSC_0001.JPG");
         repository.savePicture(original);
 
-        Picture enriched = original.withGpsCoordinates(new GpsCoordinates(64.26, -21.12));
+        Picture enriched = original.withGpsCoordinates(new GpsCoordinates(64.26, -21.12, null));
         repository.savePicture(enriched);
 
         Picture found = repository.findPictureById("iceland/DSC_0001.JPG").orElseThrow();
