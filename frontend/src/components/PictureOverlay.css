@@ -1,0 +1,163 @@
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-content {
+  display: flex;
+  width: 95vw;
+  height: 92vh;
+  max-width: 1400px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0f0f1e;
+}
+
+/* ── Image side ──────────────────────────────────────────────────────────────── */
+.overlay-image-side {
+  flex: 1;
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.overlay-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.overlay-image-missing {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.overlay-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  width: 2.5rem;
+  height: 4rem;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  z-index: 10;
+}
+
+.overlay-nav:hover { background: rgba(0, 0, 0, 0.8); }
+.overlay-nav.left  { left: 0.5rem; }
+.overlay-nav.right { right: 0.5rem; }
+
+/* ── Info panel ──────────────────────────────────────────────────────────────── */
+.overlay-info {
+  width: 280px;
+  flex-shrink: 0;
+  background: #12121f;
+  border-left: 1px solid #2a2a4a;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #2a2a4a;
+  flex-shrink: 0;
+}
+
+.overlay-counter {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.overlay-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+.overlay-close:hover { background: #2a2a4a; color: #fff; }
+
+.info-section {
+  padding: 1rem;
+  border-bottom: 1px solid #1e1e35;
+}
+
+.info-section h3 {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4fc3f7;
+  margin-bottom: 0.4rem;
+}
+
+.info-primary {
+  font-size: 0.9rem;
+  color: #e0e0e0;
+  margin-bottom: 0.2rem;
+}
+
+.info-secondary {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.exif-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.exif-chips span {
+  font-size: 0.75rem;
+  background: #1e1e35;
+  color: #aaa;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2rem;
+}
+
+/* ── Mini-map ────────────────────────────────────────────────────────────────── */
+.mini-map-wrapper {
+  flex-shrink: 0;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.mini-map {
+  height: 160px;
+  width: 100%;
+  background: #1a1a2e;
+}
+
+.mini-map-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #e53e3e;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}

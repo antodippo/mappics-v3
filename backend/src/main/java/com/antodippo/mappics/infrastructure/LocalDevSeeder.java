@@ -1,6 +1,7 @@
 package com.antodippo.mappics.infrastructure;
 
 import com.antodippo.mappics.domain.*;
+import com.antodippo.mappics.infrastructure.storage.GalleryFileStorageInMemory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,14 +21,17 @@ public class LocalDevSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(LocalDevSeeder.class);
 
+    private final GalleryFileStorageInMemory fileStorage;
     private final GalleryRepository repository;
     private final ExifExtractor exifExtractor;
 
-    // Resolved relative to the working directory (backend/) when running ./mvnw spring-boot:run
     @Value("${mappics.local.galleries-path:src/test/resources/galleries}")
     private String galleriesPath;
 
-    public LocalDevSeeder(GalleryRepository repository, ExifExtractor exifExtractor) {
+    public LocalDevSeeder(GalleryFileStorageInMemory fileStorage,
+                          GalleryRepository repository,
+                          ExifExtractor exifExtractor) {
+        this.fileStorage   = fileStorage;
         this.repository    = repository;
         this.exifExtractor = exifExtractor;
     }
@@ -68,8 +72,7 @@ public class LocalDevSeeder implements ApplicationRunner {
 
     private void seedPicture(Path jpeg, Path galleriesRoot,
                              Map<String, List<GpsCoordinates>> galleryGps) {
-        // Expect structure: <galleriesRoot>/<galleryId>/<filename>.JPG
-        Path relative  = galleriesRoot.relativize(jpeg);
+        Path relative = galleriesRoot.relativize(jpeg);
         if (relative.getNameCount() != 2) return;
 
         String galleryId = relative.getName(0).toString();
@@ -84,10 +87,20 @@ public class LocalDevSeeder implements ApplicationRunner {
                 return;
             }
 
+            // Store source bytes so LocalImageController can serve them.
+            fileStorage.addPicture(galleryId, filename, bytes);
+
+            // In local dev both thumbnail and full-size point to the original JPEG —
+            // no resizing at startup keeps seed time under 100ms.
+            String localUrl = "http://localhost:8081/local-images/" + galleryId + "/" + filename;
+
             String pictureId = galleryId + "/" + filename;
             Picture picture = Picture.create(pictureId, galleryId, filename)
                     .withGpsCoordinates(exif.gpsCoordinates())
-                    .withExifData(exif.exifData());
+                    .withExifData(exif.exifData())
+                    .withProcessedImages(localUrl, localUrl)
+                    .withLocationDescription(new LocationDescription(galleryId, galleryId + " area"))
+                    .withWeatherData(new WeatherData(18.0, 60, 1, "Mainly clear"));
 
             repository.savePicture(picture);
             galleryGps.computeIfAbsent(galleryId, k -> new ArrayList<>())
