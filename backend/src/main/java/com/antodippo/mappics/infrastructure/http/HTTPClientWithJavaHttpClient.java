@@ -1,5 +1,6 @@
 package com.antodippo.mappics.infrastructure.http;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -9,6 +10,7 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 
 @Component
+@Profile("prod")
 public class HTTPClientWithJavaHttpClient implements HTTPClient {
 
     private final HttpClient client = HttpClient.newHttpClient();
