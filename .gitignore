@@ -26,8 +26,12 @@ dist/
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
-*.tfvars
-!*.tfvars.example
+*.tfstate.*.backup
+terraform.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
 # ── GCP credentials ───────────────────────────────────────────────────────────
 credentials.json

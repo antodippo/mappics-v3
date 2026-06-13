@@ -1,0 +1,8 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# terraform.tfvars is git-ignored; never commit real project IDs or bucket names.
+
+project_id            = "your-gcp-project-id"
+region                = "europe-west1"
+firestore_location    = "europe-west1"
+source_bucket_name    = "mappics-source-yourproject"    # must be globally unique
+processed_bucket_name = "mappics-processed-yourproject" # must be globally unique
