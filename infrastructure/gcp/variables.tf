@@ -30,3 +30,29 @@ variable "artifact_registry_repository" {
   type        = string
   default     = "mappics"
 }
+
+# ── Cloud Run ─────────────────────────────────────────────────────────────────
+
+variable "backend_image" {
+  description = "Full Docker image reference for the Cloud Run service. Use the placeholder on first apply; CI/CD will update the running image automatically without Terraform re-applying."
+  type        = string
+  default     = "gcr.io/cloudrun/placeholder:latest"
+}
+
+variable "cloud_run_memory" {
+  description = "Memory limit for each Cloud Run instance."
+  type        = string
+  default     = "1Gi"
+}
+
+variable "cloud_run_cpu" {
+  description = "CPU limit for each Cloud Run instance."
+  type        = string
+  default     = "1"
+}
+
+variable "cloud_run_max_instances" {
+  description = "Maximum number of Cloud Run instances."
+  type        = number
+  default     = 3
+}

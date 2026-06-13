@@ -27,3 +27,13 @@ output "cicd_service_account_email" {
   description = "Service account email for GitHub Actions Workload Identity binding."
   value       = google_service_account.cicd.email
 }
+
+output "cloud_run_url" {
+  description = "Public HTTPS URL of the deployed Cloud Run service."
+  value       = google_cloud_run_v2_service.backend.uri
+}
+
+output "docker_image_base" {
+  description = "Base image path (without tag) to use when pushing from CI/CD."
+  value       = "${var.region}-docker.pkg.dev/${var.project_id}/${var.artifact_registry_repository}/mappics-backend"
+}
