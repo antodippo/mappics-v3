@@ -4,7 +4,7 @@ This directory contains Terraform code for all cloud resources Mappics needs to 
 
 ```
 infrastructure/
-└── gcp/          ← Step 15-17: GCP foundation, Cloud Run, Firebase Hosting
+└── gcp/          ← GCP foundation, Cloud Run, Firebase Hosting
 ```
 
 ---
@@ -19,7 +19,7 @@ infrastructure/
 
 ---
 
-## Option A — Terraform (recommended)
+## Setup
 
 ### 1. Install Terraform
 
@@ -83,7 +83,7 @@ terraform plan      # preview what will be created
 terraform apply     # create the resources (takes ~2 min on first run due to API enablement)
 ```
 
-After a successful apply, Terraform prints the output values you need for the next steps:
+After a successful apply, Terraform prints the output values you need:
 
 ```
 source_bucket_name             = "mappics-source-abc123"
@@ -91,113 +91,35 @@ processed_bucket_name          = "mappics-processed-abc123"
 artifact_registry_url          = "europe-west1-docker.pkg.dev/your-project/mappics"
 backend_service_account_email  = "mappics-backend@your-project.iam.gserviceaccount.com"
 cicd_service_account_email     = "mappics-cicd@your-project.iam.gserviceaccount.com"
+cloud_run_url                  = "https://mappics-backend-HASH-ew.a.run.app"
+firebase_hosting_url           = "https://your-project.web.app"
 ```
 
----
+### 6. Firebase Hosting first-time setup
 
-## Option B — Manual setup via gcloud
-
-If you prefer not to use Terraform, run these commands once. Replace the placeholder values.
+After `terraform apply`, complete the Firebase CLI setup once:
 
 ```bash
-PROJECT_ID="your-gcp-project-id"
-REGION="europe-west1"
-SOURCE_BUCKET="mappics-source-${PROJECT_ID}"
-PROCESSED_BUCKET="mappics-processed-${PROJECT_ID}"
+npm install -g firebase-tools
+firebase login
 
-gcloud config set project $PROJECT_ID
+cd frontend
+cp .firebaserc.example .firebaserc
+# Edit .firebaserc and replace YOUR_GCP_PROJECT_ID with your actual project ID
+
+# Verify deploy works manually before wiring CI/CD
+npm run build
+firebase deploy --only hosting
 ```
 
-### Enable APIs
+To point the frontend at the Cloud Run backend, set `VITE_API_BASE_URL` at build time:
 
 ```bash
-gcloud services enable \
-  run.googleapis.com \
-  firestore.googleapis.com \
-  artifactregistry.googleapis.com \
-  storage.googleapis.com \
-  iam.googleapis.com \
-  secretmanager.googleapis.com \
-  iamcredentials.googleapis.com
+VITE_API_BASE_URL=https://mappics-backend-HASH-ew.a.run.app npm run build
+firebase deploy --only hosting
 ```
 
-### Create GCS buckets
-
-```bash
-# Source bucket (private — stores original JPEGs)
-gsutil mb -l $REGION gs://$SOURCE_BUCKET
-gsutil uniformbucketlevelaccess set on gs://$SOURCE_BUCKET
-
-# Processed bucket (public read — serves thumbnails and full-size images)
-gsutil mb -l $REGION gs://$PROCESSED_BUCKET
-gsutil uniformbucketlevelaccess set on gs://$PROCESSED_BUCKET
-gsutil iam ch allUsers:objectViewer gs://$PROCESSED_BUCKET
-
-# CORS on the processed bucket (allows browser image loading)
-cat > /tmp/cors.json <<'EOF'
-[{"origin":["*"],"method":["GET","HEAD"],"responseHeader":["Content-Type"],"maxAgeSeconds":3600}]
-EOF
-gsutil cors set /tmp/cors.json gs://$PROCESSED_BUCKET
-```
-
-### Create Firestore database
-
-```bash
-gcloud firestore databases create \
-  --location=$REGION \
-  --type=firestore-native
-```
-
-> If you see "already exists" the project already has a Firestore database — that's fine.
-
-### Create Artifact Registry repository
-
-```bash
-gcloud artifacts repositories create mappics \
-  --repository-format=docker \
-  --location=$REGION \
-  --description="Docker images for Mappics backend"
-```
-
-### Create service accounts
-
-```bash
-# Backend runtime identity
-gcloud iam service-accounts create mappics-backend \
-  --display-name="Mappics Backend" \
-  --description="Runtime identity for the Mappics Cloud Run service"
-
-BACKEND_SA="mappics-backend@${PROJECT_ID}.iam.gserviceaccount.com"
-
-# Grant bucket access
-gsutil iam ch serviceAccount:${BACKEND_SA}:objectViewer gs://$SOURCE_BUCKET
-gsutil iam ch serviceAccount:${BACKEND_SA}:objectAdmin  gs://$PROCESSED_BUCKET
-
-# Grant Firestore access
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:${BACKEND_SA}" \
-  --role="roles/datastore.user"
-
-# CI/CD identity (used by GitHub Actions)
-gcloud iam service-accounts create mappics-cicd \
-  --display-name="Mappics CI/CD" \
-  --description="Used by GitHub Actions to build and deploy Mappics"
-
-CICD_SA="mappics-cicd@${PROJECT_ID}.iam.gserviceaccount.com"
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:${CICD_SA}" \
-  --role="roles/run.admin"
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:${CICD_SA}" \
-  --role="roles/artifactregistry.writer"
-
-# Allow CI/CD to attach the backend SA to the Cloud Run service
-gcloud iam service-accounts add-iam-policy-binding $BACKEND_SA \
-  --member="serviceAccount:${CICD_SA}" \
-  --role="roles/iam.serviceAccountUser"
-```
+In CI/CD (step 18) this is injected automatically from the Terraform outputs.
 
 ---
 
@@ -211,28 +133,17 @@ gcloud iam service-accounts add-iam-policy-binding $BACKEND_SA \
 | Artifact Registry repo (`mappics`) | Stores Docker images built by CI |
 | `mappics-backend` service account | Runtime identity for the Cloud Run service |
 | `mappics-cicd` service account | CI/CD identity for GitHub Actions (Workload Identity set up in step 18) |
-
----
-
-## Next steps
-
-- **Step 16** — `infrastructure/gcp/cloud_run.tf`: Cloud Run service definition
-- **Step 17** — Firebase Hosting configuration for the React frontend
-- **Step 18** — GitHub Actions pipeline: build → push → deploy
-- **Step 20** — Workload Identity Federation binding for `mappics-cicd`
+| Cloud Run service (`mappics-backend`) | Runs the Spring Boot backend; scales to zero |
+| Firebase project linkage | Firebase enabled on the GCP project |
+| Firebase Hosting site | SPA hosting with `**` → `/index.html` rewrite; Vite assets cached for 1 year |
 
 ---
 
 ## Tear down
 
 ```bash
-# Terraform
 cd infrastructure/gcp
 terraform destroy
-
-# Manual — delete buckets (this deletes all photos!)
-gsutil -m rm -r gs://mappics-source-YOUR_PROJECT
-gsutil -m rm -r gs://mappics-processed-YOUR_PROJECT
 ```
 
 > `terraform destroy` will fail for the Firestore database unless you first manually

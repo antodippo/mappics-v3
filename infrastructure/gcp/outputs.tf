@@ -37,3 +37,13 @@ output "docker_image_base" {
   description = "Base image path (without tag) to use when pushing from CI/CD."
   value       = "${var.region}-docker.pkg.dev/${var.project_id}/${var.artifact_registry_repository}/mappics-backend"
 }
+
+output "firebase_hosting_url" {
+  description = "Default Firebase Hosting URL for the frontend."
+  value       = "https://${local.firebase_site_id}.web.app"
+}
+
+output "firebase_site_id" {
+  description = "Firebase Hosting site ID — needed in .firebaserc and GitHub Actions."
+  value       = local.firebase_site_id
+}

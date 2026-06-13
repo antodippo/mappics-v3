@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "YOUR_GCP_PROJECT_ID"
+  },
+  "targets": {},
+  "etags": {}
+}

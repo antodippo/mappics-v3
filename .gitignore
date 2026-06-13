@@ -38,6 +38,10 @@ credentials.json
 service-account*.json
 *-sa-key.json
 
+# ── Firebase ──────────────────────────────────────────────────────────────────
+.firebaserc
+.firebase/
+
 # ── Claude ────────────────────────────────────────────────────────────────────
 .claude/settings.local.json
 

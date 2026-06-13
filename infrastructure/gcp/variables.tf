@@ -56,3 +56,11 @@ variable "cloud_run_max_instances" {
   type        = number
   default     = 3
 }
+
+# ── Firebase Hosting ──────────────────────────────────────────────────────────
+
+variable "firebase_site_id" {
+  description = "Firebase Hosting site ID (must be globally unique, 1-39 chars, lowercase). Defaults to the GCP project ID."
+  type        = string
+  default     = ""
+}
