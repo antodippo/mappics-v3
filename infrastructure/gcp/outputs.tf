@@ -52,3 +52,8 @@ output "workload_identity_provider" {
   description = "WIF provider resource name — set as WIF_PROVIDER secret in GitHub Actions."
   value       = google_iam_workload_identity_pool_provider.github.name
 }
+
+output "terraform_service_account_email" {
+  description = "Terraform SA email — set as TERRAFORM_SERVICE_ACCOUNT secret in GitHub Actions after first manual apply."
+  value       = google_service_account.terraform.email
+}

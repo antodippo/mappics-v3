@@ -40,3 +40,10 @@ resource "google_service_account_iam_member" "cicd_workload_identity" {
   role               = "roles/iam.workloadIdentityUser"
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
 }
+
+# Same pool, same repository — Terraform SA gets its own WIF binding
+resource "google_service_account_iam_member" "terraform_workload_identity" {
+  service_account_id = google_service_account.terraform.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
+}

@@ -97,29 +97,38 @@ firebase_hosting_url           = "https://your-project.web.app"
 
 ### 6. Wire up GitHub Actions
 
-After `terraform apply`, set the following in **GitHub → Settings → Secrets and variables → Actions**:
+After `terraform apply`, set the following in **GitHub → Settings → Secrets and variables → Actions**.
 
 **Secrets** (sensitive):
 
-| Name | Value |
-|---|---|
-| `WIF_PROVIDER` | `terraform output -raw workload_identity_provider` |
-| `CICD_SERVICE_ACCOUNT` | `terraform output -raw cicd_service_account_email` |
+| Secret | Pipeline | How to get the value |
+|---|---|---|
+| `WIF_PROVIDER` | all | `terraform output -raw workload_identity_provider` |
+| `CICD_SERVICE_ACCOUNT` | backend + frontend | `terraform output -raw cicd_service_account_email` |
+| `TERRAFORM_SERVICE_ACCOUNT` | terraform | `terraform output -raw terraform_service_account_email` |
+
+> `TERRAFORM_SERVICE_ACCOUNT` only exists after the **first manual apply** that creates the `mappics-terraform` SA. Set it once that apply completes.
 
 **Variables** (non-sensitive):
 
-| Name | Used by | Value |
+| Variable | Pipeline | Value |
 |---|---|---|
-| `GCP_PROJECT_ID` | backend + frontend | your GCP project ID |
-| `GCP_REGION` | backend + frontend | e.g. `europe-west1` |
+| `GCP_PROJECT_ID` | all | your GCP project ID |
+| `GCP_REGION` | all | e.g. `europe-west1` |
 | `ARTIFACT_REGISTRY_URL` | backend | `terraform output -raw artifact_registry_url` |
+| `TF_STATE_BUCKET` | terraform | name of the GCS bucket holding Terraform state |
+| `TF_SOURCE_BUCKET` | terraform | `terraform output -raw source_bucket_name` |
+| `TF_PROCESSED_BUCKET` | terraform | `terraform output -raw processed_bucket_name` |
 
-Run these in `infrastructure/gcp/` to get the exact values:
+Quick reference — run these in `infrastructure/gcp/` after applying:
 
 ```bash
 terraform output workload_identity_provider
 terraform output cicd_service_account_email
-terraform output docker_image_base
+terraform output terraform_service_account_email
+terraform output artifact_registry_url
+terraform output source_bucket_name
+terraform output processed_bucket_name
 terraform output firebase_site_id
 ```
 

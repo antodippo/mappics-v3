@@ -29,8 +29,8 @@ resource "google_project_iam_member" "backend_firestore" {
 }
 
 # ── CI/CD service account ─────────────────────────────────────────────────────
-# Used by GitHub Actions to push Docker images and deploy to Cloud Run.
-# Workload Identity Federation binds are added in step 18 (GitHub Actions).
+# Used by GitHub Actions to push Docker images and deploy to Cloud Run + Hosting.
+# Workload Identity Federation bind is in workload_identity.tf.
 
 resource "google_service_account" "cicd" {
   account_id   = "mappics-cicd"
@@ -55,4 +55,38 @@ resource "google_service_account_iam_member" "cicd_act_as_backend" {
   service_account_id = google_service_account.backend.name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.cicd.email}"
+}
+
+# ── Terraform service account ─────────────────────────────────────────────────
+# Used exclusively by the GitHub Actions Terraform pipeline.
+# Broader permissions than the deploy SA — scoped to infra management only.
+#
+# Bootstrap note: this SA is created on the FIRST manual `terraform apply`.
+# Until then, the Terraform pipeline cannot run. After the first apply,
+# set TERRAFORM_SERVICE_ACCOUNT in GitHub Secrets to the output email below.
+
+resource "google_service_account" "terraform" {
+  account_id   = "mappics-terraform"
+  display_name = "Mappics Terraform"
+  description  = "Used by the GitHub Actions Terraform pipeline to plan and apply infrastructure"
+}
+
+# Editor covers most resource management; securityAdmin allows IAM binding management
+resource "google_project_iam_member" "terraform_editor" {
+  project = var.project_id
+  role    = "roles/editor"
+  member  = "serviceAccount:${google_service_account.terraform.email}"
+}
+
+resource "google_project_iam_member" "terraform_security_admin" {
+  project = var.project_id
+  role    = "roles/iam.securityAdmin"
+  member  = "serviceAccount:${google_service_account.terraform.email}"
+}
+
+# Firebase project linkage requires this additional role
+resource "google_project_iam_member" "terraform_firebase_admin" {
+  project = var.project_id
+  role    = "roles/firebase.admin"
+  member  = "serviceAccount:${google_service_account.terraform.email}"
 }

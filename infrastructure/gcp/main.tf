@@ -12,13 +12,18 @@ terraform {
     }
   }
 
-  # Remote state in GCS — uncomment once you have created the state bucket.
-  # See infrastructure/README.md for instructions.
+  # GCS backend — bucket is supplied at init time so it stays out of source control.
   #
-  # backend "gcs" {
-  #   bucket = "YOUR_STATE_BUCKET"        # e.g. "mappics-tf-state"
-  #   prefix = "mappics/gcp"
-  # }
+  # Local dev (local state):
+  #   terraform init -backend=false
+  #
+  # Remote state (recommended):
+  #   terraform init -backend-config="bucket=YOUR_STATE_BUCKET"
+  #   Create the bucket first: gsutil mb -l REGION gs://YOUR_STATE_BUCKET
+  backend "gcs" {
+    prefix = "mappics/gcp"
+    # bucket is passed via -backend-config at init time (CI and local remote runs)
+  }
 }
 
 provider "google" {
