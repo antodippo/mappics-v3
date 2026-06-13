@@ -47,3 +47,8 @@ output "firebase_site_id" {
   description = "Firebase Hosting site ID — needed in .firebaserc and GitHub Actions."
   value       = local.firebase_site_id
 }
+
+output "workload_identity_provider" {
+  description = "WIF provider resource name — set as WIF_PROVIDER secret in GitHub Actions."
+  value       = google_iam_workload_identity_pool_provider.github.name
+}

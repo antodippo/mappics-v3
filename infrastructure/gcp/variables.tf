@@ -59,6 +59,13 @@ variable "cloud_run_max_instances" {
 
 # ── Firebase Hosting ──────────────────────────────────────────────────────────
 
+variable "github_repository" {
+  description = "GitHub repository in 'owner/repo' format. Only Actions tokens from this repo can impersonate the CI/CD service account via Workload Identity Federation."
+  type        = string
+}
+
+# ── Firebase Hosting ──────────────────────────────────────────────────────────
+
 variable "firebase_site_id" {
   description = "Firebase Hosting site ID (must be globally unique, 1-39 chars, lowercase). Defaults to the GCP project ID."
   type        = string

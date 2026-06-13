@@ -95,7 +95,36 @@ cloud_run_url                  = "https://mappics-backend-HASH-ew.a.run.app"
 firebase_hosting_url           = "https://your-project.web.app"
 ```
 
-### 6. Firebase Hosting first-time setup
+### 6. Wire up GitHub Actions
+
+After `terraform apply`, set the following in **GitHub → Settings → Secrets and variables → Actions**:
+
+**Secrets** (sensitive):
+
+| Name | Value |
+|---|---|
+| `WIF_PROVIDER` | `terraform output -raw workload_identity_provider` |
+| `CICD_SERVICE_ACCOUNT` | `terraform output -raw cicd_service_account_email` |
+
+**Variables** (non-sensitive):
+
+| Name | Example value |
+|---|---|
+| `GCP_PROJECT_ID` | `your-gcp-project-id` |
+| `GCP_REGION` | `europe-west1` |
+| `ARTIFACT_REGISTRY_URL` | `terraform output -raw docker_image_base` (omit `/mappics-backend`) |
+| `FIREBASE_SITE_ID` | `terraform output -raw firebase_site_id` |
+
+Run these in `infrastructure/gcp/` to get the exact values:
+
+```bash
+terraform output workload_identity_provider
+terraform output cicd_service_account_email
+terraform output docker_image_base
+terraform output firebase_site_id
+```
+
+### 7. Firebase Hosting first-time setup
 
 After `terraform apply`, complete the Firebase CLI setup once:
 
