@@ -108,12 +108,11 @@ After `terraform apply`, set the following in **GitHub → Settings → Secrets 
 
 **Variables** (non-sensitive):
 
-| Name | Example value |
-|---|---|
-| `GCP_PROJECT_ID` | `your-gcp-project-id` |
-| `GCP_REGION` | `europe-west1` |
-| `ARTIFACT_REGISTRY_URL` | `terraform output -raw docker_image_base` (omit `/mappics-backend`) |
-| `FIREBASE_SITE_ID` | `terraform output -raw firebase_site_id` |
+| Name | Used by | Value |
+|---|---|---|
+| `GCP_PROJECT_ID` | backend + frontend | your GCP project ID |
+| `GCP_REGION` | backend + frontend | e.g. `europe-west1` |
+| `ARTIFACT_REGISTRY_URL` | backend | `terraform output -raw artifact_registry_url` |
 
 Run these in `infrastructure/gcp/` to get the exact values:
 
