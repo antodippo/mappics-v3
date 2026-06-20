@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Component
 public class ExtractExifDataWithMetadataExtractor implements ExifExtractor {
@@ -84,13 +85,13 @@ public class ExtractExifDataWithMetadataExtractor implements ExifExtractor {
         Rational r = dir.getRational(ExifSubIFDDirectory.TAG_FOCAL_LENGTH);
         if (r == null) return null;
         double mm = r.doubleValue();
-        return mm == Math.floor(mm) ? (int) mm + "mm" : String.format("%.1fmm", mm);
+        return mm == Math.floor(mm) ? (int) mm + "mm" : String.format(Locale.ROOT, "%.1fmm", mm);
     }
 
     private String formatAperture(ExifSubIFDDirectory dir) {
         if (dir == null) return null;
         Rational r = dir.getRational(ExifSubIFDDirectory.TAG_FNUMBER);
         if (r == null) return null;
-        return String.format("f/%.1f", r.doubleValue());
+        return String.format(Locale.ROOT, "f/%.1f", r.doubleValue());
     }
 }
