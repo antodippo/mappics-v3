@@ -45,8 +45,11 @@ cd backend
 The import processes all JPEGs in the GCS source bucket (prod) or the in-memory fixture store (local):
 
 ```bash
-# Start (returns jobId)
+# Local (no secret required — mappics.import.secret defaults to empty)
 curl -X POST http://localhost:8081/import
+
+# Production (X-Import-Secret header required)
+curl -X POST -H "X-Import-Secret: <your-secret>" https://<cloud-run-url>/import
 
 # Poll status
 curl http://localhost:8081/import/{jobId}

@@ -57,6 +57,12 @@ variable "cloud_run_max_instances" {
   default     = 3
 }
 
+variable "import_secret" {
+  description = "Shared secret required in the X-Import-Secret header to call POST /import. Use a random string (e.g. openssl rand -hex 32)."
+  type        = string
+  sensitive   = true
+}
+
 # ── Firebase Hosting ──────────────────────────────────────────────────────────
 
 variable "github_repository" {

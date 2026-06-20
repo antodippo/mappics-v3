@@ -47,6 +47,10 @@ resource "google_cloud_run_v2_service" "backend" {
         name  = "MAPPICS_PROCESSED_BUCKET"
         value = google_storage_bucket.processed.name
       }
+      env {
+        name  = "MAPPICS_IMPORT_SECRET"
+        value = var.import_secret
+      }
 
       startup_probe {
         http_get {

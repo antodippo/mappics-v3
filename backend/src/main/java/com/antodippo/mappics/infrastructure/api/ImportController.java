@@ -2,6 +2,7 @@ package com.antodippo.mappics.infrastructure.api;
 
 import com.antodippo.mappics.application.ImportJob;
 import com.antodippo.mappics.application.ProcessUploadedGalleries;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,15 +15,23 @@ public class ImportController {
 
     private final ProcessUploadedGalleries processUploadedGalleries;
     private final ImportJobStore importJobStore;
+    private final String importSecret;
 
     public ImportController(ProcessUploadedGalleries processUploadedGalleries,
-                            ImportJobStore importJobStore) {
+                            ImportJobStore importJobStore,
+                            @Value("${mappics.import.secret:}") String importSecret) {
         this.processUploadedGalleries = processUploadedGalleries;
         this.importJobStore = importJobStore;
+        this.importSecret = importSecret;
     }
 
     @PostMapping
-    public ResponseEntity<?> startImport() {
+    public ResponseEntity<?> startImport(
+            @RequestHeader(value = "X-Import-Secret", required = false) String providedSecret) {
+        if (!importSecret.isBlank() && !importSecret.equals(providedSecret)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Unauthorized"));
+        }
         if (importJobStore.hasRunningJob()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new ErrorResponse("An import is already in progress"));
