@@ -12,11 +12,13 @@ COPY src/ src/
 RUN ./mvnw package -DskipTests -q
 
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
+# Must be glibc-based: grpc-netty-shaded bundles a native SSL lib (netty-tcnative)
+# compiled against glibc; Alpine (musl) causes a SIGSEGV on SSL context init.
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # Run as an unprivileged user
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring
 
 COPY --from=build /app/target/*.jar app.jar
