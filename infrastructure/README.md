@@ -73,7 +73,13 @@ gsutil mb -l europe-west1 gs://mappics-tf-state-YOUR_PROJECT
 # and run: terraform init -migrate-state
 ```
 
-### 5. Apply
+### 5. Accept Firebase Terms of Service
+
+Before `terraform apply` can link Firebase to your GCP project, you must accept the Firebase Terms of Service — the API returns 403 even for project owners if this step is skipped.
+
+Visit [console.firebase.google.com](https://console.firebase.google.com), select your project, and accept the Terms of Service when prompted. You do not need to complete the Firebase project setup wizard; accepting the ToS is enough.
+
+### 6. Apply
 
 ```bash
 cd infrastructure/gcp
@@ -95,7 +101,7 @@ cloud_run_url                  = "https://mappics-backend-HASH-ew.a.run.app"
 firebase_hosting_url           = "https://your-project.web.app"
 ```
 
-### 6. Wire up GitHub Actions
+### 7. Wire up GitHub Actions
 
 After `terraform apply`, set the following in **GitHub → Settings → Secrets and variables → Actions**.
 
@@ -132,7 +138,7 @@ terraform output processed_bucket_name
 terraform output firebase_site_id
 ```
 
-### 7. Firebase Hosting first-time setup
+### 8. Firebase Hosting first-time setup
 
 After `terraform apply`, complete the Firebase CLI setup once:
 
