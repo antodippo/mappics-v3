@@ -1,13 +1,8 @@
 package com.antodippo.mappics.infrastructure.persistence;
 
 import com.antodippo.mappics.domain.GalleryRepository;
-import com.google.api.gax.core.NoCredentialsProvider;
-import com.google.api.gax.grpc.GrpcTransportChannel;
-import com.google.api.gax.rpc.FixedTransportChannelProvider;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,19 +28,13 @@ class GalleryRepositoryUsingFirestoreIT extends GalleryRepositoryAbstractTest {
             DockerImageName.parse("gcr.io/google.com/cloudsdktool/cloud-sdk:emulators")
     );
 
-    private static ManagedChannel channel;
     private static Firestore firestore;
 
     @BeforeAll
     static void startFirestoreClient() {
-        channel = ManagedChannelBuilder.forTarget(emulator.getEmulatorEndpoint())
-                .usePlaintext()
-                .build();
         firestore = FirestoreOptions.newBuilder()
                 .setProjectId(PROJECT_ID)
-                .setChannelProvider(
-                        FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel)))
-                .setCredentialsProvider(NoCredentialsProvider.create())
+                .setEmulatorHost(emulator.getEmulatorEndpoint())
                 .build()
                 .getService();
     }
@@ -53,7 +42,6 @@ class GalleryRepositoryUsingFirestoreIT extends GalleryRepositoryAbstractTest {
     @AfterAll
     static void stopFirestoreClient() throws Exception {
         firestore.close();
-        channel.shutdown();
     }
 
     @BeforeEach
