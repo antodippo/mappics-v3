@@ -37,6 +37,7 @@ jobs:
       TF_VAR_processed_bucket_name: ${{ vars.TF_PROCESSED_BUCKET }}
       # github.repository is "owner/repo" — exactly the format the variable expects
       TF_VAR_github_repository:     ${{ github.repository }}
+      TF_VAR_import_secret:         ${{ secrets.TF_IMPORT_SECRET }}
 
     steps:
       # ── 1. Source ───────────────────────────────────────────────────────────
