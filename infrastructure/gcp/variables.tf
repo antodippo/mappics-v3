@@ -51,10 +51,16 @@ variable "cloud_run_cpu" {
   default     = "1"
 }
 
+variable "cloud_run_min_instances" {
+  description = "Minimum number of Cloud Run instances."
+  type        = number
+  default     = 1
+}
+
 variable "cloud_run_max_instances" {
   description = "Maximum number of Cloud Run instances."
   type        = number
-  default     = 3
+  default     = 1
 }
 
 variable "import_secret" {
