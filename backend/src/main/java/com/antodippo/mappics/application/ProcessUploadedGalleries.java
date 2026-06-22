@@ -3,6 +3,7 @@ package com.antodippo.mappics.application;
 import com.antodippo.mappics.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -52,8 +53,10 @@ public class ProcessUploadedGalleries {
     }
 
     public void process(ImportJob job) {
-        job.start();
+        MDC.put("importJobId", job.getId());
         try {
+            long startMs = System.currentTimeMillis();
+            job.start();
             List<String> galleryIds = fileStorage.listGalleryIds();
             job.setTotalGalleries(galleryIds.size());
             log.info("Import started: {} galleries to process", galleryIds.size());
@@ -63,24 +66,29 @@ public class ProcessUploadedGalleries {
                 job.galleryCompleted();
             }
             job.complete();
-            log.info("Import completed: {} galleries, {} pictures processed",
-                    job.getProcessedGalleries(), job.getProcessedPictures());
+            log.info("Import completed in {}ms: {} galleries, {} pictures, {} errors",
+                    System.currentTimeMillis() - startMs,
+                    job.getProcessedGalleries(), job.getProcessedPictures(), job.getErrors().size());
         } catch (Exception e) {
             log.error("Import failed unexpectedly", e);
             job.fail("Unexpected error: " + e.getMessage());
+        } finally {
+            MDC.clear();
         }
     }
 
     private void processGallery(String galleryId, ImportJob job) {
+        MDC.put("galleryId", galleryId);
         List<String> filenames = fileStorage.listPictureFilenames(galleryId);
         job.startGallery(galleryId, filenames.size());
-        log.info("Processing gallery '{}': {} pictures", galleryId, filenames.size());
+        log.info("Gallery '{}' started: {} pictures", galleryId, filenames.size());
 
         Gallery gallery = repository.findById(galleryId)
                 .orElseGet(() -> Gallery.create(galleryId));
 
         List<String> pictureIds = new ArrayList<>();
         List<GpsCoordinates> gpsCoords = new ArrayList<>();
+        int skipped = 0;
 
         for (String filename : filenames) {
             String pictureId = galleryId + "/" + filename;
@@ -89,19 +97,22 @@ public class ProcessUploadedGalleries {
             Optional<Picture> existing = repository.findPictureById(pictureId);
 
             if (existing.isPresent() && existing.get().hasAllData()) {
+                log.debug("Picture '{}' skipped (already complete)", pictureId);
                 existing.get().getGpsCoordinates().ifPresent(gpsCoords::add);
                 job.pictureCompleted();
+                skipped++;
                 continue;
             }
 
             Picture picture = existing.orElseGet(() -> Picture.create(pictureId, galleryId, filename));
+            log.info("Enriching picture '{}'", pictureId);
 
             try {
                 picture = enrich(picture);
                 picture.getGpsCoordinates().ifPresent(gpsCoords::add);
                 repository.savePicture(picture);
             } catch (Exception e) {
-                log.warn("Failed to process {}: {}", pictureId, e.getMessage());
+                log.warn("Failed to process '{}': {}", pictureId, e.getMessage());
                 job.addError("Failed to process " + pictureId + ": " + e.getMessage());
             }
             job.pictureCompleted();
@@ -113,6 +124,8 @@ public class ProcessUploadedGalleries {
             updated = updated.withAverageGpsCoordinates(avgGps.get());
         }
         repository.save(updated);
+        log.info("Gallery '{}' done: {} enriched, {} skipped", galleryId, filenames.size() - skipped, skipped);
+        MDC.remove("galleryId");
     }
 
     private Picture enrich(Picture picture) {
@@ -124,10 +137,18 @@ public class ProcessUploadedGalleries {
             ExifExtractionResult result = exifExtractor.extract(imageData);
             if (result.gpsCoordinates() != null) {
                 picture = picture.withGpsCoordinates(result.gpsCoordinates());
+                log.debug("GPS extracted: lat={}, lon={}", result.gpsCoordinates().latitude(), result.gpsCoordinates().longitude());
+            } else {
+                log.debug("No GPS coordinates in EXIF");
             }
             if (result.exifData() != null) {
                 picture = picture.withExifData(result.exifData());
+                log.debug("EXIF extracted: {} {}, taken at {}", result.exifData().cameraMake(), result.exifData().cameraModel(), result.exifData().takenAt());
+            } else {
+                log.debug("No EXIF data found in image");
             }
+        } else {
+            log.debug("EXIF already present, skipping extraction");
         }
 
         // ── Image resizing ────────────────────────────────────────────────────
@@ -139,11 +160,14 @@ public class ProcessUploadedGalleries {
             picture = picture.withProcessedImages(
                     fileStorage.getThumbnailUrl(picture.getGalleryId(), picture.getOriginalFilename()),
                     fileStorage.getFullSizeUrl(picture.getGalleryId(), picture.getOriginalFilename()));
+            log.debug("Images resized and stored (thumbnail: {}px, full-size: {}px)", THUMBNAIL_MAX_DIM, FULL_SIZE_MAX_DIM);
+        } else {
+            log.debug("Images already resized, skipping");
         }
 
         // ── Location + weather (require GPS) ──────────────────────────────────
         if (picture.getGpsCoordinates().isEmpty()) {
-            log.warn("No GPS in {}, skipping location and weather", picture.getId());
+            log.warn("No GPS coordinates in '{}', skipping location and weather", picture.getId());
             return picture;
         }
 
@@ -153,8 +177,13 @@ public class ProcessUploadedGalleries {
             Optional<LocationDescription> location = locationFetcher.fetch(gps);
             if (location.isPresent()) {
                 picture = picture.withLocationDescription(location.get());
+                log.debug("Location fetched: {}", location.get().name());
+            } else {
+                log.warn("Location fetch returned empty for '{}' at lat={}, lon={}", picture.getId(), gps.latitude(), gps.longitude());
             }
             rateLimitOsm();
+        } else {
+            log.debug("Location already present, skipping");
         }
 
         if (picture.getWeatherData().isEmpty()) {
@@ -165,8 +194,15 @@ public class ProcessUploadedGalleries {
                 Optional<WeatherData> weather = weatherFetcher.fetch(gps, takenAt);
                 if (weather.isPresent()) {
                     picture = picture.withWeatherData(weather.get());
+                    log.debug("Weather fetched: {}°C, {}", weather.get().temperatureCelsius(), weather.get().description());
+                } else {
+                    log.warn("Weather fetch returned empty for '{}' at lat={}, lon={}, takenAt={}", picture.getId(), gps.latitude(), gps.longitude(), takenAt);
                 }
+            } else {
+                log.debug("No takenAt in EXIF for '{}', skipping weather fetch", picture.getId());
             }
+        } else {
+            log.debug("Weather already present, skipping");
         }
 
         return picture;
