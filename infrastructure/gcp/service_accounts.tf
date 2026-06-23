@@ -28,6 +28,13 @@ resource "google_project_iam_member" "backend_firestore" {
   member  = "serviceAccount:${google_service_account.backend.email}"
 }
 
+# Write traces to Cloud Trace
+resource "google_project_iam_member" "backend_trace" {
+  project = var.project_id
+  role    = "roles/cloudtrace.agent"
+  member  = "serviceAccount:${google_service_account.backend.email}"
+}
+
 # ── CI/CD service account ─────────────────────────────────────────────────────
 # Used by GitHub Actions to push Docker images and deploy to Cloud Run + Hosting.
 # Workload Identity Federation bind is in workload_identity.tf.
