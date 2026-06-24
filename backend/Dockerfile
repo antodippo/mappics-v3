@@ -19,6 +19,11 @@ WORKDIR /app
 
 # Run as an unprivileged user
 RUN groupadd --system spring && useradd --system --gid spring spring
+
+RUN mkdir -p /opt/cprof && \
+    wget -q -O- https://storage.googleapis.com/cloud-profiler/java/latest/profiler_java_agent.tar.gz \
+    | tar xzv -C /opt/cprof
+
 USER spring
 
 COPY --from=build /app/target/*.jar app.jar
@@ -29,6 +34,7 @@ ENTRYPOINT [ \
   "java", \
   "-XX:+UseContainerSupport", \
   "-XX:MaxRAMPercentage=75.0", \
+  "-agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=mappics,-cprof_service_version=1.0.0,-cprof_enable_heap_sampling=true", \
   "-Dspring.profiles.active=prod", \
   "-jar", "app.jar" \
 ]

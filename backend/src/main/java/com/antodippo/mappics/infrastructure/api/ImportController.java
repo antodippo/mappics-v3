@@ -3,6 +3,7 @@ package com.antodippo.mappics.infrastructure.api;
 import com.antodippo.mappics.application.ImportJob;
 import com.antodippo.mappics.application.ProcessUploadedGalleries;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,18 +17,25 @@ public class ImportController {
     private final ProcessUploadedGalleries processUploadedGalleries;
     private final ImportJobStore importJobStore;
     private final String importSecret;
+    private final Environment environment;
 
     public ImportController(ProcessUploadedGalleries processUploadedGalleries,
                             ImportJobStore importJobStore,
-                            @Value("${mappics.import.secret:}") String importSecret) {
+                            @Value("${mappics.import.secret:}") String importSecret,
+                            Environment environment) {
         this.processUploadedGalleries = processUploadedGalleries;
         this.importJobStore = importJobStore;
         this.importSecret = importSecret;
+        this.environment = environment;
     }
 
     @PostMapping
     public ResponseEntity<?> startImport(
             @RequestHeader(value = "X-Import-Secret", required = false) String providedSecret) {
+        if (importSecret.isBlank() && !environment.matchesProfiles("local")) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(new ErrorResponse("Import endpoint not configured"));
+        }
         if (!importSecret.isBlank() && !importSecret.equals(providedSecret)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized"));

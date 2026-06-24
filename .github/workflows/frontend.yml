@@ -6,11 +6,49 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
   workflow_dispatch: # allow manual re-deploy without a code change
 
 jobs:
-  build-deploy:
-    name: Build → Deploy
+  check:
+    name: Build check
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      # ── 1. Source ───────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js ──────────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      # ── 3. Build ─────────────────────────────────────────────────────────────
+      # VITE_API_BASE_URL is intentionally empty here — validates the bundle
+      # compiles without errors. The deploy job sets the real URL.
+      - name: Build
+        run: npm run build
+        working-directory: frontend
+
+  deploy:
+    name: Deploy
+    needs: check
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
 
     # id-token: write is required for Workload Identity Federation
@@ -63,7 +101,6 @@ jobs:
 
       # ── 5. Build ─────────────────────────────────────────────────────────────
       # VITE_API_BASE_URL is baked into the bundle at build time.
-      # When empty, the Vite dev-server proxy handles routing (local dev only).
       - name: Build
         run: npm run build
         working-directory: frontend
