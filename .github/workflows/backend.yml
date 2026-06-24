@@ -6,21 +6,20 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
   workflow_dispatch: # allow manual re-deploy without a code change
 
 jobs:
-  test-build-deploy:
-    name: Test → Build → Deploy
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
-    # id-token: write is required for Workload Identity Federation
     permissions:
       contents: read
-      id-token: write
-
-    env:
-      REGION: ${{ vars.GCP_REGION }}
-      IMAGE:  ${{ vars.ARTIFACT_REGISTRY_URL }}/mappics-backend
 
     steps:
       # ── 1. Source ───────────────────────────────────────────────────────────
@@ -43,7 +42,27 @@ jobs:
         run: ./mvnw clean verify -B
         working-directory: backend
 
-      # ── 4. GCP authentication ────────────────────────────────────────────────
+  build-deploy:
+    name: Build → Deploy
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    # id-token: write is required for Workload Identity Federation
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      REGION: ${{ vars.GCP_REGION }}
+      IMAGE:  ${{ vars.ARTIFACT_REGISTRY_URL }}/mappics-backend
+
+    steps:
+      # ── 1. Source ───────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. GCP authentication ────────────────────────────────────────────────
       # Uses Workload Identity Federation — no long-lived service account keys.
       # Required GitHub secrets:  WIF_PROVIDER, CICD_SERVICE_ACCOUNT
       # Required GitHub variables: GCP_PROJECT_ID, GCP_REGION, ARTIFACT_REGISTRY_URL
@@ -58,7 +77,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # ── 5. Docker ────────────────────────────────────────────────────────────
+      # ── 3. Docker ────────────────────────────────────────────────────────────
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
@@ -77,7 +96,7 @@ jobs:
           cache-from: type=gha
           cache-to:   type=gha,mode=max
 
-      # ── 6. Deploy ────────────────────────────────────────────────────────────
+      # ── 4. Deploy ────────────────────────────────────────────────────────────
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy mappics-backend \
