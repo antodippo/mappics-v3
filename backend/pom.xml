@@ -61,6 +61,12 @@
             <artifactId>spring-cloud-gcp-starter</artifactId>
         </dependency>
 
+        <!-- Cloud Trace — exports Micrometer Tracing spans to GCP Cloud Trace -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>spring-cloud-gcp-starter-trace</artifactId>
+        </dependency>
+
         <!-- Google Cloud Storage -->
         <dependency>
             <groupId>com.google.cloud</groupId>

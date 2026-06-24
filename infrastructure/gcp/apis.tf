@@ -37,6 +37,11 @@ resource "google_project_service" "iam_credentials" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "cloudtrace" {
+  service            = "cloudtrace.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_project_service" "cloudprofiler" {
   service            = "cloudprofiler.googleapis.com"
   disable_on_destroy = false

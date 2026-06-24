@@ -9,6 +9,7 @@ import com.antodippo.mappics.infrastructure.persistence.GalleryRepositoryInMemor
 import com.antodippo.mappics.infrastructure.storage.GalleryFileStorageInMemory;
 import com.antodippo.mappics.infrastructure.weather.FetchWeatherDataFromOpenMeteo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,8 @@ import java.io.InputStream;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 class ProcessUploadedGalleriesTest {
 
@@ -40,14 +43,19 @@ class ProcessUploadedGalleriesTest {
 
         fileStorage.addPicture("iceland", "DSC_0114.JPG", fixture("galleries/Iceland/DSC_0114.JPG"));
 
-        useCase = new ProcessUploadedGalleries(
+        PictureEnricher enricher = new PictureEnricher(
                 fileStorage,
-                repository,
                 new ExtractExifDataWithMetadataExtractor(),
                 new ImageResizerTestDouble(),
                 new FetchLocationDescriptionFromOSM(new HTTPClientThatAlwaysReturns(OSM_RESPONSE), new ObjectMapper()),
                 new FetchWeatherDataFromOpenMeteo(new HTTPClientThatAlwaysReturns(WEATHER_RESPONSE), new ObjectMapper()),
                 0L // no OSM rate limiting in tests
+        );
+        useCase = new ProcessUploadedGalleries(
+                fileStorage,
+                repository,
+                enricher,
+                mock(Tracer.class, RETURNS_DEEP_STUBS)
         );
     }
 
@@ -132,11 +140,14 @@ class ProcessUploadedGalleriesTest {
         var repo = new GalleryRepositoryInMemory();
         var uc = new ProcessUploadedGalleries(
                 failingStorage, repo,
-                new ExtractExifDataWithMetadataExtractor(),
-                new ImageResizerTestDouble(),
-                new FetchLocationDescriptionFromOSM(new HTTPClientThatAlwaysReturns(OSM_RESPONSE), new ObjectMapper()),
-                new FetchWeatherDataFromOpenMeteo(new HTTPClientThatAlwaysReturns(WEATHER_RESPONSE), new ObjectMapper()),
-                0L
+                new PictureEnricher(
+                        failingStorage,
+                        new ExtractExifDataWithMetadataExtractor(),
+                        new ImageResizerTestDouble(),
+                        new FetchLocationDescriptionFromOSM(new HTTPClientThatAlwaysReturns(OSM_RESPONSE), new ObjectMapper()),
+                        new FetchWeatherDataFromOpenMeteo(new HTTPClientThatAlwaysReturns(WEATHER_RESPONSE), new ObjectMapper()),
+                        0L),
+                mock(Tracer.class, RETURNS_DEEP_STUBS)
         );
 
         ImportJob job = job();

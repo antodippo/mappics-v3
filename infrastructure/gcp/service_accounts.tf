@@ -28,6 +28,13 @@ resource "google_project_iam_member" "backend_firestore" {
   member  = "serviceAccount:${google_service_account.backend.email}"
 }
 
+# Write traces to Cloud Trace
+resource "google_project_iam_member" "backend_trace" {
+  project = var.project_id
+  role    = "roles/cloudtrace.agent"
+  member  = "serviceAccount:${google_service_account.backend.email}"
+}
+
 # Write profiling data to Cloud Profiler
 resource "google_project_iam_member" "backend_profiler" {
   project = var.project_id
