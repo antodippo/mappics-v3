@@ -9,7 +9,6 @@ import com.antodippo.mappics.infrastructure.persistence.GalleryRepositoryInMemor
 import com.antodippo.mappics.infrastructure.storage.GalleryFileStorageInMemory;
 import com.antodippo.mappics.infrastructure.weather.FetchWeatherDataFromOpenMeteo;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,10 +17,11 @@ import java.io.InputStream;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
 
-class ProcessUploadedGalleriesTest {
+// Exercises the full import flow over the untraced core chain
+// (GalleryImporterCore → GalleryProcessorCore → PictureEnricherCore). Span emission is
+// covered separately by the Tracing*Test classes.
+class GalleryImporterCoreTest {
 
     private static final String OSM_RESPONSE = """
             {"display_name":"Reykjavik, Iceland","address":{"city":"Reykjavik","country":"Iceland"}}
@@ -34,7 +34,7 @@ class ProcessUploadedGalleriesTest {
 
     private GalleryFileStorageInMemory fileStorage;
     private GalleryRepositoryInMemory  repository;
-    private ProcessUploadedGalleries   useCase;
+    private GalleryImporter            useCase;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -43,25 +43,12 @@ class ProcessUploadedGalleriesTest {
 
         fileStorage.addPicture("iceland", "DSC_0114.JPG", fixture("galleries/Iceland/DSC_0114.JPG"));
 
-        PictureEnricher enricher = new PictureEnricher(
-                fileStorage,
-                new ExtractExifDataWithMetadataExtractor(),
-                new ImageResizerTestDouble(),
-                new FetchLocationDescriptionFromOSM(new HTTPClientThatAlwaysReturns(OSM_RESPONSE), new ObjectMapper()),
-                new FetchWeatherDataFromOpenMeteo(new HTTPClientThatAlwaysReturns(WEATHER_RESPONSE), new ObjectMapper()),
-                0L // no OSM rate limiting in tests
-        );
-        useCase = new ProcessUploadedGalleries(
-                fileStorage,
-                repository,
-                enricher,
-                mock(Tracer.class, RETURNS_DEEP_STUBS)
-        );
+        useCase = importerFor(fileStorage, repository);
     }
 
     @Test
     void processesNewPictureWithAllData() {
-        useCase.process(job());
+        useCase.importGalleries(job());
 
         Picture picture = repository.findPictureById("iceland/DSC_0114.JPG").orElseThrow();
         assertTrue(picture.hasAllData());
@@ -75,7 +62,7 @@ class ProcessUploadedGalleriesTest {
 
     @Test
     void createsGalleryWithAverageGpsAndPictureIds() {
-        useCase.process(job());
+        useCase.importGalleries(job());
 
         Gallery gallery = repository.findById("iceland").orElseThrow();
         assertEquals(List.of("iceland/DSC_0114.JPG"), gallery.getPictureIds());
@@ -93,7 +80,7 @@ class ProcessUploadedGalleriesTest {
         repository.savePicture(processed);
 
         ImportJob job = job();
-        useCase.process(job);
+        useCase.importGalleries(job);
 
         // processedPictures increments for skipped ones too, so gallery is still updated
         assertEquals(1, job.getProcessedPictures());
@@ -113,7 +100,7 @@ class ProcessUploadedGalleriesTest {
                 .withProcessedImages("http://localhost/thumb.jpg", "http://localhost/full.jpg");
         repository.savePicture(partial);
 
-        useCase.process(job());
+        useCase.importGalleries(job());
 
         Picture enriched = repository.findPictureById("iceland/DSC_0114.JPG").orElseThrow();
         assertTrue(enriched.getLocationDescription().isPresent(), "Location should be filled in");
@@ -138,20 +125,10 @@ class ProcessUploadedGalleriesTest {
         failingStorage.addPicture("iceland", "broken.JPG", new byte[]{0x00});
 
         var repo = new GalleryRepositoryInMemory();
-        var uc = new ProcessUploadedGalleries(
-                failingStorage, repo,
-                new PictureEnricher(
-                        failingStorage,
-                        new ExtractExifDataWithMetadataExtractor(),
-                        new ImageResizerTestDouble(),
-                        new FetchLocationDescriptionFromOSM(new HTTPClientThatAlwaysReturns(OSM_RESPONSE), new ObjectMapper()),
-                        new FetchWeatherDataFromOpenMeteo(new HTTPClientThatAlwaysReturns(WEATHER_RESPONSE), new ObjectMapper()),
-                        0L),
-                mock(Tracer.class, RETURNS_DEEP_STUBS)
-        );
+        var uc = importerFor(failingStorage, repo);
 
         ImportJob job = job();
-        uc.process(job);
+        uc.importGalleries(job);
 
         assertEquals(ImportJobStatus.COMPLETED, job.getStatus(), "Job should complete despite one error");
         assertFalse(job.getErrors().isEmpty(), "Broken picture should produce an error entry");
@@ -161,7 +138,7 @@ class ProcessUploadedGalleriesTest {
     @Test
     void jobProgressTracksGalleriesAndPictures() {
         ImportJob job = job();
-        useCase.process(job);
+        useCase.importGalleries(job);
 
         assertEquals(ImportJobStatus.COMPLETED, job.getStatus());
         assertEquals(1, job.getTotalGalleries());
@@ -176,7 +153,7 @@ class ProcessUploadedGalleriesTest {
     void multipleGalleriesAreEachProcessed() throws IOException {
         fileStorage.addPicture("azores", "DSC_0892.JPG", fixture("galleries/Azores/DSC_0892.JPG"));
 
-        useCase.process(job());
+        useCase.importGalleries(job());
 
         assertTrue(repository.findById("iceland").isPresent());
         assertTrue(repository.findById("azores").isPresent());
@@ -184,12 +161,25 @@ class ProcessUploadedGalleriesTest {
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
+    private GalleryImporter importerFor(GalleryFileStorage storage, GalleryRepository repo) {
+        PictureEnricher enricher = new PictureEnricherCore(
+                storage,
+                new ExtractExifDataWithMetadataExtractor(),
+                new ImageResizerTestDouble(),
+                new FetchLocationDescriptionFromOSM(new HTTPClientThatAlwaysReturns(OSM_RESPONSE), new ObjectMapper()),
+                new FetchWeatherDataFromOpenMeteo(new HTTPClientThatAlwaysReturns(WEATHER_RESPONSE), new ObjectMapper()),
+                0L // no OSM rate limiting in tests
+        );
+        GalleryProcessor processor = new GalleryProcessorCore(storage, repo, enricher);
+        return new GalleryImporterCore(storage, processor);
+    }
+
     private ImportJob job() {
         return new ImportJob("test-" + System.nanoTime());
     }
 
     private static byte[] fixture(String path) throws IOException {
-        try (InputStream in = ProcessUploadedGalleriesTest.class.getClassLoader().getResourceAsStream(path)) {
+        try (InputStream in = GalleryImporterCoreTest.class.getClassLoader().getResourceAsStream(path)) {
             assertNotNull(in, "Fixture not found: " + path);
             return in.readAllBytes();
         }
