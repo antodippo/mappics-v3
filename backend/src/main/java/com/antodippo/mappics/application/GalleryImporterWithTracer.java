@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Primary
-public class TracingGalleryImporter implements GalleryImporter {
+public class GalleryImporterWithTracer implements GalleryImporter {
 
     private final GalleryImporter delegate;
     private final Tracer          tracer;
 
-    public TracingGalleryImporter(@Qualifier("galleryImporterCore") GalleryImporter delegate, Tracer tracer) {
+    public GalleryImporterWithTracer(@Qualifier("galleryImporterCore") GalleryImporter delegate, Tracer tracer) {
         this.delegate = delegate;
         this.tracer   = tracer;
     }

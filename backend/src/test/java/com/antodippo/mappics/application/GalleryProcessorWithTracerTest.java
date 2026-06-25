@@ -7,10 +7,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class TracingGalleryProcessorTest {
+class GalleryProcessorWithTracerTest {
 
-    private SimpleTracer            tracer;
-    private TracingGalleryProcessor processor;
+    private SimpleTracer               tracer;
+    private GalleryProcessorWithTracer processor;
 
     @BeforeEach
     void setUp() {
@@ -20,7 +20,7 @@ class TracingGalleryProcessorTest {
     @Test
     void emitsGallerySpanWithGalleryIdAndPictureTotal() {
         // Delegate processes three pictures (each bumps the job counter once).
-        processor = new TracingGalleryProcessor((galleryId, job) -> {
+        processor = new GalleryProcessorWithTracer((galleryId, job) -> {
             job.pictureCompleted();
             job.pictureCompleted();
             job.pictureCompleted();

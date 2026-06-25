@@ -7,10 +7,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class TracingGalleryImporterTest {
+class GalleryImporterWithTracerTest {
 
-    private SimpleTracer           tracer;
-    private TracingGalleryImporter importer;
+    private SimpleTracer             tracer;
+    private GalleryImporterWithTracer importer;
 
     @BeforeEach
     void setUp() {
@@ -19,7 +19,7 @@ class TracingGalleryImporterTest {
 
     @Test
     void emitsImportSpanWithJobIdAndSummaryTags() {
-        importer = new TracingGalleryImporter(job -> {
+        importer = new GalleryImporterWithTracer(job -> {
             job.setTotalGalleries(2);
             job.galleryCompleted();
             job.galleryCompleted();
@@ -43,7 +43,7 @@ class TracingGalleryImporterTest {
     @Test
     void recordsErrorOnSpanWhenDelegateThrows() {
         RuntimeException failure = new RuntimeException("disk gone");
-        importer = new TracingGalleryImporter(job -> { throw failure; }, tracer);
+        importer = new GalleryImporterWithTracer(job -> { throw failure; }, tracer);
 
         // The decorator records the error on the span and swallows it (fire-and-forget import).
         importer.importGalleries(new ImportJob("job-2"));

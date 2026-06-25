@@ -12,12 +12,12 @@ import java.time.LocalDateTime;
 
 @Component
 @Primary
-public class TracingPictureEnricher implements PictureEnricher {
+public class PictureEnricherWithTracer implements PictureEnricher {
 
     private final PictureEnricher delegate;
     private final Tracer          tracer;
 
-    public TracingPictureEnricher(@Qualifier("pictureEnricherCore") PictureEnricher delegate, Tracer tracer) {
+    public PictureEnricherWithTracer(@Qualifier("pictureEnricherCore") PictureEnricher delegate, Tracer tracer) {
         this.delegate = delegate;
         this.tracer   = tracer;
     }

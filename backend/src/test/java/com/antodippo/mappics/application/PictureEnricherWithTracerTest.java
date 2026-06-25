@@ -11,19 +11,19 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class TracingPictureEnricherTest {
+class PictureEnricherWithTracerTest {
 
     private static final String PICTURE_ID = "iceland/DSC_0114.JPG";
     private static final GpsCoordinates GPS = new GpsCoordinates(64.13, -21.90, null);
 
-    private SimpleTracer            tracer;
-    private TracingPictureEnricher  enricher;
-    private Picture                 picture;
+    private SimpleTracer              tracer;
+    private PictureEnricherWithTracer enricher;
+    private Picture                   picture;
 
     @BeforeEach
     void setUp() {
         tracer   = new SimpleTracer();
-        enricher = new TracingPictureEnricher(new PassThroughEnricher(), tracer);
+        enricher = new PictureEnricherWithTracer(new PassThroughEnricher(), tracer);
         picture  = Picture.create(PICTURE_ID, "iceland", "DSC_0114.JPG");
     }
 

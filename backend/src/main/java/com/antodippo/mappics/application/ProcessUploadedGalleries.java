@@ -4,7 +4,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 // Thin async entry point: the @Async boundary must sit OUTSIDE the tracing span so the
-// `import` span (created in TracingGalleryImporter) lives on the async worker thread.
+// `import` span (created in GalleryImporterWithTracer) lives on the async worker thread.
 @Component
 public class ProcessUploadedGalleries {
 

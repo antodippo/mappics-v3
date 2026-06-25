@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Primary
-public class TracingGalleryProcessor implements GalleryProcessor {
+public class GalleryProcessorWithTracer implements GalleryProcessor {
 
     private final GalleryProcessor delegate;
     private final Tracer           tracer;
 
-    public TracingGalleryProcessor(@Qualifier("galleryProcessorCore") GalleryProcessor delegate, Tracer tracer) {
+    public GalleryProcessorWithTracer(@Qualifier("galleryProcessorCore") GalleryProcessor delegate, Tracer tracer) {
         this.delegate = delegate;
         this.tracer   = tracer;
     }
