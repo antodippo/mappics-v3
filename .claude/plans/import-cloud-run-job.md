@@ -51,8 +51,15 @@ Unlike the old in-process path (which returned `409` via `hasRunningJob`), there
 is no built-in guard against two simultaneous executions. Triggering the Job twice
 at once would run two imports in parallel → up to 2 req/s to OSM Nominatim, over
 its 1 req/s ToS. The import is idempotent so data won't corrupt, but **don't start
-overlapping executions**. (Cloud Run also lets you cap this via job execution
-controls if needed.)
+overlapping executions**.
+
+Note: Cloud Run Jobs' `--parallelism` / `--tasks` only limit concurrency *within*
+a single execution (and this job is single-task anyway); they do **not** stop two
+separate executions from overlapping, and there is no native single-flight lock
+across executions. If you ever need to enforce one-at-a-time, guard it externally —
+e.g. check `gcloud run jobs executions list --job mappics-import-job` for a
+`Running` execution before triggering, or trigger only from a single Cloud
+Scheduler job.
 
 ## Optional: scheduled runs
 Add a `google_cloud_scheduler_job` calling the Run Jobs API on a cron, gated
