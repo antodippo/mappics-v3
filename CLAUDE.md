@@ -44,13 +44,13 @@ cd backend
 
 The import processes all JPEGs in the GCS source bucket (prod) or the in-memory fixture store (local).
 
-**Local** — runs in-process via the HTTP endpoint (`mappics.import.in-process=true`):
+**Local** — runs in-process via the HTTP endpoint (`ImportController` is `@Profile("local")`):
 ```bash
 curl -X POST http://localhost:8081/import   # no secret required
 curl http://localhost:8081/import/{jobId}   # poll status
 ```
 
-**Production** — runs as the `mappics-import-job` Cloud Run Job, NOT via the web service. `POST /import` returns `501` in prod because the web service has `cpu_idle=true` and would throttle the CPU-bound resize (turning a minutes-long import into hours). See `.claude/plans/import-cloud-run-job.md`.
+**Production** — runs as the `mappics-import-job` Cloud Run Job, NOT via the web service. The `/import` endpoints don't exist in prod (404): the web service has `cpu_idle=true` and would throttle the CPU-bound resize (turning a minutes-long import into hours). See `.claude/plans/import-cloud-run-job.md`.
 ```bash
 gcloud run jobs execute mappics-import-job --region <region> --wait
 ```
@@ -64,8 +64,8 @@ The import is idempotent — already-processed pictures are skipped field by fie
 |---|---|---|
 | GET | `/api/galleries` | List all galleries (id, name, averageGps, pictureCount) |
 | GET | `/api/galleries/{id}` | Gallery detail with all pictures |
-| POST | `/import` | Start async in-process import (local/dev); 409 if one is already running; **501 in prod** — use the `mappics-import-job` Cloud Run Job |
-| GET | `/import/{jobId}` | Live progress (in-process import only) |
+| POST | `/import` | Start async in-process import; 409 if one is already running. **Local profile only** (404 in prod — use the `mappics-import-job` Cloud Run Job) |
+| GET | `/import/{jobId}` | Live progress. **Local profile only** |
 | GET | `/local-images/{gallery}/{file}` | Serves fixture images (local profile only) |
 | GET | `/actuator/health` | Health check (used by Cloud Run probes) |
 

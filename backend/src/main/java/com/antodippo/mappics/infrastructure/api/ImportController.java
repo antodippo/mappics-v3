@@ -3,47 +3,37 @@ package com.antodippo.mappics.infrastructure.api;
 import com.antodippo.mappics.application.ImportJob;
 import com.antodippo.mappics.application.ProcessUploadedGalleries;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Local-dev only: triggers an in-process import and exposes live polling.
+// In prod the import runs as the `mappics-import-job` Cloud Run Job (the web
+// service throttles CPU while idle), so this controller is not registered and
+// POST/GET /import return 404.
 @RestController
 @RequestMapping("/import")
+@Profile("local")
 public class ImportController {
 
     private final ProcessUploadedGalleries processUploadedGalleries;
     private final ImportJobStore importJobStore;
     private final String importSecret;
-    private final boolean inProcessEnabled;
-    private final Environment environment;
 
     public ImportController(ProcessUploadedGalleries processUploadedGalleries,
                             ImportJobStore importJobStore,
-                            @Value("${mappics.import.secret:}") String importSecret,
-                            @Value("${mappics.import.in-process:true}") boolean inProcessEnabled,
-                            Environment environment) {
+                            @Value("${mappics.import.secret:}") String importSecret) {
         this.processUploadedGalleries = processUploadedGalleries;
         this.importJobStore = importJobStore;
         this.importSecret = importSecret;
-        this.inProcessEnabled = inProcessEnabled;
-        this.environment = environment;
     }
 
     @PostMapping
     public ResponseEntity<?> startImport(
             @RequestHeader(value = "X-Import-Secret", required = false) String providedSecret) {
-        if (!inProcessEnabled) {
-            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                    .body(new ErrorResponse("In-process import is disabled. Run the Cloud Run Job instead: "
-                            + "gcloud run jobs execute mappics-import-job --region <region> --wait"));
-        }
-        if (importSecret.isBlank() && !environment.matchesProfiles("local")) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(new ErrorResponse("Import endpoint not configured"));
-        }
         if (!importSecret.isBlank() && !importSecret.equals(providedSecret)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized"));

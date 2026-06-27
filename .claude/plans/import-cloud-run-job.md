@@ -24,11 +24,11 @@ and no longer does heavy work.
   and exits 0 (success) / 1 (failure).
 - Job config (`infrastructure/gcp/cloud_run_job.tf`): SA `mappics-backend`,
   `timeout=3600s`, `max_retries=3` (import is idempotent), `cpu=2`, `memory=2Gi`.
-  Image tag owned by CI (`backend.yml` runs `gcloud run jobs update`); Terraform
+  Image tag owned by CI (`backend.yml` runs `gcloud run jobs deploy`); Terraform
   ignores the image field.
-- In prod, `POST /import` returns `501` (`mappics.import.in-process=false` in
-  `application-prod.properties`); use the Job instead. Local keeps the in-process
-  `@Async` path (`mappics.import.in-process=true`, the default).
+- The `/import` HTTP endpoints are `@Profile("local")` only (`ImportController`,
+  `ImportJobStore`, `ProcessUploadedGalleries`), so they don't exist in prod (404);
+  use the Job instead. Local keeps the in-process `@Async` trigger + live polling.
 
 ## Running it
     gcloud run jobs execute mappics-import-job --region <region> --wait
