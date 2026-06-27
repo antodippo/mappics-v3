@@ -121,6 +121,52 @@ The integration test (`GalleryRepositoryUsingFirestoreIT`) pulls `gcr.io/google.
 
 ---
 
+## Common tasks (Makefile)
+
+The backend ships a `Makefile` that wraps the everyday commands. Run it from `backend/`:
+
+```bash
+cd backend
+make help        # list every target with a description
+```
+
+**Local development**
+
+| Target | What it does |
+|---|---|
+| `make run` | Run the backend locally (profile `local`, port 8081, seeds test galleries) |
+| `make test` | Unit tests (fast, no Docker) — same as `./mvnw test` |
+| `make verify` | Unit + Firestore-emulator integration tests (needs Docker) — same as `./mvnw verify` |
+| `make build` | Clean build the runnable jar |
+| `make clean` | Remove build artifacts |
+| `make docker-up` / `make docker-down` | Start / stop the backend via docker-compose |
+
+**Import — local** (in-process `/import` endpoint, `local` profile only)
+
+| Target | What it does |
+|---|---|
+| `make import-local` | Trigger an import and follow its progress until `COMPLETED`/`FAILED` |
+| `make import-status-local JOB=<id>` | One-shot status of a specific job |
+
+> `make import-local` talks to a running backend — start it with `make run` in another terminal first.
+
+**Import — prod** (the `mappics-import-job` Cloud Run Job; the `/import` endpoints 404 in prod)
+
+| Target | What it does |
+|---|---|
+| `make import-prod` | Trigger the prod import job (returns immediately; follow it with `make import-logs-prod`) |
+| `make import-logs-prod` | Tail recent import-job logs (last hour) |
+| `make import-executions-prod` | List executions — check for a `Running` one before triggering |
+
+> Prod targets need `gcloud` auth and a configured region/project. Either set them in `gcloud config`
+> (the Makefile reads `run/region` and `project`) or pass them inline:
+> `make import-prod REGION=europe-west1 PROJECT=my-project`.
+>
+> **Don't start overlapping prod imports** — two at once would exceed OSM Nominatim's 1 req/s limit
+> (the import itself is idempotent). See [`.claude/plans/import-cloud-run-job.md`](.claude/plans/import-cloud-run-job.md).
+
+---
+
 ## Project structure
 
 ```
