@@ -22,3 +22,50 @@ body {
   font-size: 1.2rem;
   color: #888;
 }
+
+/* Basemap style switcher (bottom-right map control) */
+.basemap-switcher {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: rgba(15, 15, 30, 0.85);
+  border: 1px solid rgba(79, 195, 247, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.basemap-btn {
+  border: 0;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  background: transparent;
+  color: #cfd8dc;
+  transition: background 0.15s, color 0.15s;
+}
+
+.basemap-btn:hover {
+  background: rgba(79, 195, 247, 0.18);
+  color: #fff;
+}
+
+.basemap-btn.active {
+  background: #4fc3f7;
+  color: #0f0f1e;
+  font-weight: 600;
+}
+
+/* Compact variant for the tiny mini-map in the picture overlay */
+.basemap-switcher.compact {
+  gap: 1px;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.basemap-switcher.compact .basemap-btn {
+  padding: 3px 6px;
+  font-size: 0.68rem;
+  border-radius: 4px;
+}

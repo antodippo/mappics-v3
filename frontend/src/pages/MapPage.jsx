@@ -1,14 +1,22 @@
 import { useState, useEffect, useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import { Link } from 'react-router-dom'
+import { MapContainer, Marker, Tooltip, useMap } from 'react-leaflet'
+import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import { fetchGalleries } from '../api/client.js'
+import BasemapLayer from '../components/BasemapLayer.jsx'
+import useDocumentTitle from '../useDocumentTitle.js'
 import './MapPage.css'
 
-const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-const DARK_TILES_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors ' +
-  '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+function FitBounds({ galleries }) {
+  const map = useMap()
+  useEffect(() => {
+    const coords = galleries
+      .filter(g => g.averageGps)
+      .map(g => [g.averageGps.latitude, g.averageGps.longitude])
+    if (coords.length > 0) map.fitBounds(coords, { padding: [50, 50], maxZoom: 10 })
+  }, [galleries, map])
+  return null
+}
 
 function galleryIcon() {
   return L.divIcon({
@@ -21,9 +29,12 @@ function galleryIcon() {
 }
 
 export default function MapPage() {
+  const navigate = useNavigate()
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  useDocumentTitle('Mappics')
 
   useEffect(() => {
     fetchGalleries()
@@ -42,11 +53,6 @@ export default function MapPage() {
     <div className="map-page">
       <header className="map-header">
         <span className="map-title">Mappics</span>
-        {galleries.length > 0 && (
-          <span className="map-subtitle">
-            {mapped.length} / {galleries.length} galleries on the map
-          </span>
-        )}
       </header>
 
       <MapContainer
@@ -56,28 +62,17 @@ export default function MapPage() {
         worldCopyJump
         className="leaflet-map"
       >
-        <TileLayer
-          url={DARK_TILES}
-          attribution={DARK_TILES_ATTRIBUTION}
-          subdomains="abcd"
-          maxZoom={20}
-        />
+        <BasemapLayer />
+        <FitBounds galleries={mapped} />
 
         {mapped.map(gallery => (
           <Marker
             key={gallery.id}
             position={[gallery.averageGps.latitude, gallery.averageGps.longitude]}
             icon={icon}
+            eventHandlers={{ click: () => navigate(`/gallery/${gallery.id}`) }}
           >
-            <Popup>
-              <div className="gallery-popup">
-                <strong>{gallery.name}</strong>
-                <span className="gallery-popup-count">{gallery.pictureCount} photos</span>
-                <Link to={`/gallery/${gallery.id}`} className="gallery-popup-link">
-                  View gallery →
-                </Link>
-              </div>
-            </Popup>
+            <Tooltip direction="top" offset={[0, -10]}>{gallery.name}</Tooltip>
           </Marker>
         ))}
       </MapContainer>

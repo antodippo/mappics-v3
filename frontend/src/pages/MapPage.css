@@ -50,35 +50,6 @@
   box-shadow: 0 0 6px rgba(79, 195, 247, 0.7);
 }
 
-/* ── Popup ──────────────────────────────────────────────────────────────────── */
-.gallery-popup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  min-width: 130px;
-}
-
-.gallery-popup strong {
-  font-size: 0.95rem;
-  color: #111;
-}
-
-.gallery-popup-count {
-  font-size: 0.78rem;
-  color: #666;
-}
-
-.gallery-popup-link {
-  font-size: 0.85rem;
-  color: #0077cc;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.gallery-popup-link:hover {
-  text-decoration: underline;
-}
-
 /* ── No-GPS notice ──────────────────────────────────────────────────────────── */
 .map-empty-notice {
   position: absolute;

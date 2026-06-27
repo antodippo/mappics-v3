@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { fetchGallery } from '../api/client.js'
 import PictureOverlay from '../components/PictureOverlay.jsx'
+import BasemapLayer from '../components/BasemapLayer.jsx'
+import useDocumentTitle from '../useDocumentTitle.js'
 import './GalleryPage.css'
-
-const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-const DARK_TILES_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors ' +
-  '&copy; <a href="https://carto.com/attributions">CARTO</a>'
 
 function makeIcon(thumbnailUrl, selected) {
   if (thumbnailUrl) {
@@ -55,6 +52,8 @@ export default function GalleryPage() {
       .finally(() => setLoading(false))
   }, [id])
 
+  useDocumentTitle(gallery ? `${gallery.name} · Mappics` : 'Mappics')
+
   const close = useCallback(() => setSelectedIdx(null), [])
   const prev  = useCallback(() => setSelectedIdx(i => Math.max(0, i - 1)), [])
   const next  = useCallback(() =>
@@ -88,8 +87,7 @@ export default function GalleryPage() {
             zoom={8}
             className="gallery-leaflet-map"
           >
-            <TileLayer url={DARK_TILES} attribution={DARK_TILES_ATTRIBUTION}
-                       subdomains="abcd" maxZoom={20} />
+            <BasemapLayer />
             <FitBounds pictures={pictures} />
             {pictures.map((pic, i) =>
               pic.gps ? (
