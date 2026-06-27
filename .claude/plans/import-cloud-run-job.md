@@ -46,6 +46,14 @@ Key log lines: `Import started: N galleries`, `Gallery X done: N enriched`,
 ## Cost
 Billed only while executing. A minutes-long import costs cents. No 24/7 CPU.
 
+## Concurrency note
+Unlike the old in-process path (which returned `409` via `hasRunningJob`), there
+is no built-in guard against two simultaneous executions. Triggering the Job twice
+at once would run two imports in parallel → up to 2 req/s to OSM Nominatim, over
+its 1 req/s ToS. The import is idempotent so data won't corrupt, but **don't start
+overlapping executions**. (Cloud Run also lets you cap this via job execution
+controls if needed.)
+
 ## Optional: scheduled runs
 Add a `google_cloud_scheduler_job` calling the Run Jobs API on a cron, gated
 behind a `var.import_schedule` toggle. Off by default — not built.
