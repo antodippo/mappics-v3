@@ -14,7 +14,7 @@ public class PictureEnricherCore implements PictureEnricher {
 
     private static final Logger log = LoggerFactory.getLogger(PictureEnricherCore.class);
     private static final int THUMBNAIL_MAX_DIM = 400;
-    private static final int FULL_SIZE_MAX_DIM  = 1920;
+    private static final int FULL_SIZE_MAX_DIM  = 2880;
 
     private final GalleryFileStorage         fileStorage;
     private final ExifExtractor              exifExtractor;
