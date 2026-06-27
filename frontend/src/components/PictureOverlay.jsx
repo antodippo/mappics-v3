@@ -1,9 +1,8 @@
-import { useEffect, useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { useEffect } from 'react'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import BasemapLayer from './BasemapLayer.jsx'
 import './PictureOverlay.css'
-
-const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
 
 const miniPin = L.divIcon({
   className: '',
@@ -68,7 +67,7 @@ export default function PictureOverlay({ picture, index, total, onClose, onPrev,
                 attributionControl={false}
                 className="mini-map"
               >
-                <TileLayer url={DARK_TILES} subdomains="abcd" maxZoom={20} />
+                <BasemapLayer compact />
                 <RecenterMap lat={gps.latitude} lng={gps.longitude} />
                 <Marker position={[gps.latitude, gps.longitude]} icon={miniPin} />
               </MapContainer>
