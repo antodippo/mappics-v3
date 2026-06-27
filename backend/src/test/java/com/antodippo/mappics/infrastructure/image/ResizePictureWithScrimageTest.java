@@ -1,5 +1,6 @@
 package com.antodippo.mappics.infrastructure.image;
 
+import com.antodippo.mappics.domain.ResizedImages;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +31,7 @@ class ResizePictureWithScrimageTest {
 
     @Test
     void thumbnailLongerSideIsAtMost400Pixels() throws IOException {
-        byte[] output = resizer.resize(AZORES_JPEG, 400);
+        byte[] output = resizer.resizeToBounds(AZORES_JPEG, 400, 1920).thumbnail();
 
         BufferedImage img = ImageIO.read(new ByteArrayInputStream(output));
         int longerSide = Math.max(img.getWidth(), img.getHeight());
@@ -39,7 +40,7 @@ class ResizePictureWithScrimageTest {
 
     @Test
     void thumbnailAspectRatioIsPreserved() throws IOException {
-        byte[] output = resizer.resize(AZORES_JPEG, 400);
+        byte[] output = resizer.resizeToBounds(AZORES_JPEG, 400, 1920).thumbnail();
 
         // Original: 5984×3366 = 1.777 ratio (16:9). Thumbnail: 400×225 = same.
         BufferedImage img = ImageIO.read(new ByteArrayInputStream(output));
@@ -49,7 +50,7 @@ class ResizePictureWithScrimageTest {
 
     @Test
     void fullSizeLongerSideIsAtMost1920Pixels() throws IOException {
-        byte[] output = resizer.resize(AZORES_JPEG, 1920);
+        byte[] output = resizer.resizeToBounds(AZORES_JPEG, 400, 1920).fullSize();
 
         BufferedImage img = ImageIO.read(new ByteArrayInputStream(output));
         int longerSide = Math.max(img.getWidth(), img.getHeight());
@@ -60,7 +61,7 @@ class ResizePictureWithScrimageTest {
     void doesNotUpscaleImageSmallerThanMaxDimension() throws IOException {
         byte[] smallJpeg = minimalJpeg(10, 10);
 
-        byte[] output = resizer.resize(smallJpeg, 400);
+        byte[] output = resizer.resizeToBounds(smallJpeg, 400, 1920).thumbnail();
 
         BufferedImage img = ImageIO.read(new ByteArrayInputStream(output));
         assertTrue(img.getWidth() <= 10 && img.getHeight() <= 10,
@@ -68,11 +69,15 @@ class ResizePictureWithScrimageTest {
     }
 
     @Test
-    void outputIsAValidJpeg() throws IOException {
-        byte[] output = resizer.resize(AZORES_JPEG, 400);
+    void producesBothThumbnailAndFullSizeFromOneCall() throws IOException {
+        ResizedImages output = resizer.resizeToBounds(AZORES_JPEG, 400, 1920);
 
-        BufferedImage img = ImageIO.read(new ByteArrayInputStream(output));
-        assertNotNull(img, "Output bytes could not be decoded as an image");
+        BufferedImage thumb = ImageIO.read(new ByteArrayInputStream(output.thumbnail()));
+        BufferedImage full = ImageIO.read(new ByteArrayInputStream(output.fullSize()));
+        assertNotNull(thumb, "Thumbnail bytes could not be decoded as an image");
+        assertNotNull(full, "Full-size bytes could not be decoded as an image");
+        assertTrue(Math.max(thumb.getWidth(), thumb.getHeight()) <= 400);
+        assertTrue(Math.max(full.getWidth(), full.getHeight()) <= 1920);
     }
 
     private static byte[] minimalJpeg(int width, int height) throws IOException {
