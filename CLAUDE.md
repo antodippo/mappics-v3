@@ -42,18 +42,19 @@ cd backend
 
 ## Triggering an import
 
-The import processes all JPEGs in the GCS source bucket (prod) or the in-memory fixture store (local):
+The import processes all JPEGs in the GCS source bucket (prod) or the in-memory fixture store (local).
 
+**Local** — runs in-process via the HTTP endpoint (`mappics.import.in-process=true`):
 ```bash
-# Local (no secret required — mappics.import.secret defaults to empty)
-curl -X POST http://localhost:8081/import
-
-# Production (X-Import-Secret header required)
-curl -X POST -H "X-Import-Secret: <your-secret>" https://<cloud-run-url>/import
-
-# Poll status
-curl http://localhost:8081/import/{jobId}
+curl -X POST http://localhost:8081/import   # no secret required
+curl http://localhost:8081/import/{jobId}   # poll status
 ```
+
+**Production** — runs as the `mappics-import-job` Cloud Run Job, NOT via the web service. `POST /import` returns `501` in prod because the web service has `cpu_idle=true` and would throttle the CPU-bound resize (turning a minutes-long import into hours). See `.claude/plans/import-cloud-run-job.md`.
+```bash
+gcloud run jobs execute mappics-import-job --region <region> --wait
+```
+Watch progress in Cloud Logging (`resource.type="cloud_run_job"`, filter `jsonPayload.importJobId="<id>"`).
 
 The import is idempotent — already-processed pictures are skipped field by field.
 
@@ -63,8 +64,8 @@ The import is idempotent — already-processed pictures are skipped field by fie
 |---|---|---|
 | GET | `/api/galleries` | List all galleries (id, name, averageGps, pictureCount) |
 | GET | `/api/galleries/{id}` | Gallery detail with all pictures |
-| POST | `/import` | Start async import; 409 if one is already running |
-| GET | `/import/{jobId}` | Live progress |
+| POST | `/import` | Start async in-process import (local/dev); 409 if one is already running; **501 in prod** — use the `mappics-import-job` Cloud Run Job |
+| GET | `/import/{jobId}` | Live progress (in-process import only) |
 | GET | `/local-images/{gallery}/{file}` | Serves fixture images (local profile only) |
 | GET | `/actuator/health` | Health check (used by Cloud Run probes) |
 

@@ -62,8 +62,18 @@ class ImportControllerTest {
         verifyNoInteractions(importJobStore, process);
     }
 
+    @Test
+    void startImport_withInProcessDisabled_returns501() {
+        var controller = new ImportController(process, importJobStore, "secret123", false, prodEnv);
+
+        var response = controller.startImport("secret123");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_IMPLEMENTED);
+        verifyNoInteractions(importJobStore, process);
+    }
+
     private ImportController controller(String secret, Environment environment) {
-        return new ImportController(process, importJobStore, secret, environment);
+        return new ImportController(process, importJobStore, secret, true, environment);
     }
 
     private static Environment environmentWithProfile(boolean isLocal) {

@@ -105,6 +105,16 @@ jobs:
             --project="${{ vars.GCP_PROJECT_ID }}" \
             --quiet
 
+      # The import runs as a Cloud Run Job (mappics-import-job), not on the
+      # web service. Keep its image in sync with each deploy.
+      - name: Update import Cloud Run Job
+        run: |
+          gcloud run jobs update mappics-import-job \
+            --image="${{ env.IMAGE }}:${{ github.sha }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ vars.GCP_PROJECT_ID }}" \
+            --quiet
+
       - name: Print service URL
         run: |
           gcloud run services describe mappics-backend \

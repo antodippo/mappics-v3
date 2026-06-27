@@ -17,21 +17,29 @@ public class ImportController {
     private final ProcessUploadedGalleries processUploadedGalleries;
     private final ImportJobStore importJobStore;
     private final String importSecret;
+    private final boolean inProcessEnabled;
     private final Environment environment;
 
     public ImportController(ProcessUploadedGalleries processUploadedGalleries,
                             ImportJobStore importJobStore,
                             @Value("${mappics.import.secret:}") String importSecret,
+                            @Value("${mappics.import.in-process:true}") boolean inProcessEnabled,
                             Environment environment) {
         this.processUploadedGalleries = processUploadedGalleries;
         this.importJobStore = importJobStore;
         this.importSecret = importSecret;
+        this.inProcessEnabled = inProcessEnabled;
         this.environment = environment;
     }
 
     @PostMapping
     public ResponseEntity<?> startImport(
             @RequestHeader(value = "X-Import-Secret", required = false) String providedSecret) {
+        if (!inProcessEnabled) {
+            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                    .body(new ErrorResponse("In-process import is disabled. Run the Cloud Run Job instead: "
+                            + "gcloud run jobs execute mappics-import-job --region <region> --wait"));
+        }
         if (importSecret.isBlank() && !environment.matchesProfiles("local")) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(new ErrorResponse("Import endpoint not configured"));

@@ -177,6 +177,7 @@ In CI/CD (step 18) this is injected automatically from the Terraform outputs.
 | `mappics-backend` service account | Runtime identity for the Cloud Run service |
 | `mappics-cicd` service account | CI/CD identity for GitHub Actions (Workload Identity set up in step 18) |
 | Cloud Run service (`mappics-backend`) | Runs the Spring Boot backend; scales to zero |
+| Cloud Run job (`mappics-import-job`) | Runs the photo import with full (non-throttled) CPU; billed per execution. Trigger with `gcloud run jobs execute mappics-import-job`. See `.claude/plans/import-cloud-run-job.md` |
 | Firebase project linkage | Firebase enabled on the GCP project |
 | Firebase Hosting site | SPA hosting with `**` → `/index.html` rewrite; Vite assets cached for 1 year |
 
