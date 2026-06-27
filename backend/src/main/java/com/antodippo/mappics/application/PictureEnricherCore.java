@@ -14,7 +14,7 @@ public class PictureEnricherCore implements PictureEnricher {
 
     private static final Logger log = LoggerFactory.getLogger(PictureEnricherCore.class);
     private static final int THUMBNAIL_MAX_DIM = 400;
-    private static final int FULL_SIZE_MAX_DIM  = 1920;
+    private static final int FULL_SIZE_MAX_DIM  = 2880;
 
     private final GalleryFileStorage         fileStorage;
     private final ExifExtractor              exifExtractor;
@@ -58,10 +58,9 @@ public class PictureEnricherCore implements PictureEnricher {
 
     @Override
     public Picture resizeImages(Picture picture, byte[] imageData) {
-        byte[] thumbnail = imageResizer.resize(imageData, THUMBNAIL_MAX_DIM);
-        byte[] fullSize  = imageResizer.resize(imageData, FULL_SIZE_MAX_DIM);
-        fileStorage.writeThumbnail(picture.getGalleryId(), picture.getOriginalFilename(), thumbnail);
-        fileStorage.writeFullSize(picture.getGalleryId(), picture.getOriginalFilename(), fullSize);
+        ResizedImages resized = imageResizer.resizeToBounds(imageData, THUMBNAIL_MAX_DIM, FULL_SIZE_MAX_DIM);
+        fileStorage.writeThumbnail(picture.getGalleryId(), picture.getOriginalFilename(), resized.thumbnail());
+        fileStorage.writeFullSize(picture.getGalleryId(), picture.getOriginalFilename(), resized.fullSize());
         picture = picture.withProcessedImages(
                 fileStorage.getThumbnailUrl(picture.getGalleryId(), picture.getOriginalFilename()),
                 fileStorage.getFullSizeUrl(picture.getGalleryId(), picture.getOriginalFilename()));

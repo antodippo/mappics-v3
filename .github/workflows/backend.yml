@@ -105,6 +105,18 @@ jobs:
             --project="${{ vars.GCP_PROJECT_ID }}" \
             --quiet
 
+      # The import runs as a Cloud Run Job (mappics-import-job), not on the
+      # web service. Keep its image in sync with each deploy. `jobs deploy` is
+      # create-or-update, so it succeeds even if this pipeline runs before the
+      # Terraform pipeline has created the job.
+      - name: Deploy import Cloud Run Job
+        run: |
+          gcloud run jobs deploy mappics-import-job \
+            --image="${{ env.IMAGE }}:${{ github.sha }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ vars.GCP_PROJECT_ID }}" \
+            --quiet
+
       - name: Print service URL
         run: |
           gcloud run services describe mappics-backend \

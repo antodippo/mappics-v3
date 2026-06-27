@@ -2,5 +2,7 @@ package com.antodippo.mappics.domain;
 
 public interface ImageResizer {
 
-    byte[] resize(byte[] imageData, int maxDimension);
+    // Decodes the source image once and produces both bounded outputs, so a large
+    // original is not decoded twice.
+    ResizedImages resizeToBounds(byte[] imageData, int thumbnailMaxDim, int fullSizeMaxDim);
 }

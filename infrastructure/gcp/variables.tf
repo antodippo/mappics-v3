@@ -63,6 +63,18 @@ variable "cloud_run_max_instances" {
   default     = 1
 }
 
+variable "import_job_cpu" {
+  description = "CPU limit for the mappics-import-job Cloud Run Job. The Job always allocates CPU while running and is billed per execution, so this can be generous."
+  type        = string
+  default     = "2"
+}
+
+variable "import_job_memory" {
+  description = "Memory limit for the mappics-import-job Cloud Run Job."
+  type        = string
+  default     = "2Gi"
+}
+
 variable "import_secret" {
   description = "Shared secret required in the X-Import-Secret header to call POST /import. Use a random string (e.g. openssl rand -hex 32)."
   type        = string

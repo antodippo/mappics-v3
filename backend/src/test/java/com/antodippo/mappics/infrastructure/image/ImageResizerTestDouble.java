@@ -1,6 +1,7 @@
 package com.antodippo.mappics.infrastructure.image;
 
 import com.antodippo.mappics.domain.ImageResizer;
+import com.antodippo.mappics.domain.ResizedImages;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -12,8 +13,8 @@ public class ImageResizerTestDouble implements ImageResizer {
     private static final byte[] FIXED_JPEG = createFixedJpeg();
 
     @Override
-    public byte[] resize(byte[] imageData, int maxDimension) {
-        return FIXED_JPEG;
+    public ResizedImages resizeToBounds(byte[] imageData, int thumbnailMaxDim, int fullSizeMaxDim) {
+        return new ResizedImages(FIXED_JPEG, FIXED_JPEG);
     }
 
     private static byte[] createFixedJpeg() {
