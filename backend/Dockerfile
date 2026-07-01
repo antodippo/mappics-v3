@@ -1,5 +1,5 @@
 # ── Stage 1: Build ────────────────────────────────────────────────────────────
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /app
 
 # Download dependencies before copying source so this layer is cached
@@ -14,7 +14,7 @@ RUN ./mvnw package -DskipTests -q
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
 # Must be glibc-based: grpc-netty-shaded bundles a native SSL lib (netty-tcnative)
 # compiled against glibc; Alpine (musl) causes a SIGSEGV on SSL context init.
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 WORKDIR /app
 
 # Run as an unprivileged user
