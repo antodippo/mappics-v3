@@ -75,7 +75,7 @@ jobs:
           service_account: ${{ secrets.CICD_SERVICE_ACCOUNT }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
 
       # ── 3. Docker ────────────────────────────────────────────────────────────
       - name: Configure Docker for Artifact Registry
