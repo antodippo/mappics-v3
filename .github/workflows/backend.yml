@@ -24,7 +24,7 @@ jobs:
     steps:
       # ── 1. Source ───────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # ── 2. Java ─────────────────────────────────────────────────────────────
       - name: Set up Java 21
@@ -60,7 +60,7 @@ jobs:
     steps:
       # ── 1. Source ───────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # ── 2. GCP authentication ────────────────────────────────────────────────
       # Uses Workload Identity Federation — no long-lived service account keys.
