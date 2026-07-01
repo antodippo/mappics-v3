@@ -12,7 +12,6 @@
   display: flex;
   width: 95vw;
   height: 92vh;
-  max-width: 1400px;
   border-radius: 8px;
   overflow: hidden;
   background: #0f0f1e;
@@ -165,4 +164,31 @@
   background: #e53e3e;
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Narrow screens: stack image on top, info below ─────────────────────────── */
+@media (max-width: 768px) {
+  .overlay-content {
+    flex-direction: column;
+    width: 100vw;
+    height: 100dvh;      /* dvh accounts for mobile browser chrome */
+    max-height: 100dvh;
+    border-radius: 0;
+    overflow-y: auto;    /* the viewer itself scrolls */
+  }
+
+  .overlay-image-side {
+    flex: 0 0 auto;      /* size to the image, don't stretch to fill */
+  }
+
+  .overlay-image {
+    max-height: 70vh;    /* keep tall/portrait photos from filling the whole screen */
+  }
+
+  .overlay-info {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #2a2a4a;  /* separator now sits above the panel */
+    overflow-y: visible;            /* parent .overlay-content owns the scroll */
+  }
 }
