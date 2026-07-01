@@ -41,4 +41,4 @@ export const BASEMAPS = [
   },
 ]
 
-export const DEFAULT_BASEMAP = 'streets'
+export const DEFAULT_BASEMAP = 'satellite'
