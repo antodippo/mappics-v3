@@ -8,9 +8,9 @@ on:
       - '.github/workflows/backend.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
+    # No path filter on PRs: the Test job must always run so it can be a
+    # required status check for Dependabot auto-merge without deadlocking
+    # PRs that don't touch backend/**.
   workflow_dispatch: # allow manual re-deploy without a code change
 
 jobs:

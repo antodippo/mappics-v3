@@ -1,0 +1,26 @@
+name: Dependabot auto-merge
+
+# Enables GitHub's native auto-merge on Dependabot PRs. GitHub then merges each
+# PR once the required status checks (Test, Build check) pass. Scope is "all
+# updates", so no update-type gating is needed.
+#
+# The workflow-level `permissions` block grants write access to this
+# Dependabot-triggered run (the documented pattern). Auto-merge also requires:
+#   - "Allow auto-merge" enabled on the repo, and
+#   - branch protection on `main` with Test + Build check as required checks.
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

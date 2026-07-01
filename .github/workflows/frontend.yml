@@ -8,9 +8,9 @@ on:
       - '.github/workflows/frontend.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+    # No path filter on PRs: the Build check job must always run so it can be a
+    # required status check for Dependabot auto-merge without deadlocking
+    # PRs that don't touch frontend/**.
   workflow_dispatch: # allow manual re-deploy without a code change
 
 jobs:
