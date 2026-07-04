@@ -1,13 +1,19 @@
 name: Dependabot auto-merge
 
 # Enables GitHub's native auto-merge on Dependabot PRs. GitHub then merges each
-# PR once the required status checks (Test, Build check) pass. Scope is "all
-# updates", so no update-type gating is needed.
+# PR once the required status checks (Test, Build check) pass.
 #
-# The workflow-level `permissions` block grants write access to this
-# Dependabot-triggered run (the documented pattern). Auto-merge also requires:
-#   - "Allow auto-merge" enabled on the repo, and
-#   - branch protection on `main` with Test + Build check as required checks.
+# Two things make this reliable:
+#   1. Auto-merge is enabled with DEPENDABOT_PAT — a fine-grained PAT (Contents,
+#      Pull requests, Workflows: write) stored as a *Dependabot* secret. The
+#      default GITHUB_TOKEN cannot write .github/workflows/**, so it can never
+#      complete the merge of a github-actions bump (which edits workflow files).
+#      The secret MUST live under Settings → Secrets and variables → Dependabot;
+#      Actions secrets are not exposed to Dependabot-triggered runs.
+#   2. Infra changes are excluded — a human merges those (see below).
+#
+# Also requires: "Allow auto-merge" enabled on the repo, and branch protection
+# on `main` with Test + Build check as required checks.
 on: pull_request
 
 permissions:
@@ -18,9 +24,27 @@ jobs:
   auto-merge:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
+    env:
+      PR_URL: ${{ github.event.pull_request.html_url }}
     steps:
+      # Infra changes (Terraform / the terraform workflow) are gated by a human,
+      # not auto-merged: their Plan check can't authenticate to GCP under
+      # Dependabot (Actions secrets aren't exposed), so it can never be a
+      # trusted merge gate.
+      - name: Detect infrastructure changes
+        id: infra
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          files=$(gh pr view "$PR_URL" --json files -q '.files[].path')
+          if echo "$files" | grep -qE '^infrastructure/|^\.github/workflows/terraform\.yml$'; then
+            echo "infra=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "infra=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Enable auto-merge
+        if: steps.infra.outputs.infra == 'false'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_PAT }}
