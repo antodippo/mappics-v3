@@ -69,7 +69,7 @@ jobs:
       # Values come from `terraform output` after applying infrastructure/gcp/.
       - name: Authenticate to GCP
         id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.CICD_SERVICE_ACCOUNT }}
