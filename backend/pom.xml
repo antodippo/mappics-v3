@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>4.1.0</version>
         <relativePath/>
     </parent>
 
@@ -18,7 +18,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <spring-cloud-gcp.version>5.8.0</spring-cloud-gcp.version>
+        <spring-cloud-gcp.version>8.0.4</spring-cloud-gcp.version>
         <spring-cloud.version>2025.1.2</spring-cloud.version>
         <testcontainers.version>1.21.3</testcontainers.version>
     </properties>
@@ -67,6 +67,14 @@
             <artifactId>spring-cloud-gcp-starter-trace</artifactId>
         </dependency>
 
+        <!-- Brave tracing auto-configuration (provides the io.micrometer.tracing.Tracer
+             bean). Spring Boot 4 extracted this out of spring-boot-starter-actuator into
+             its own module; gcp-starter-trace brings the Brave bridge but not the autoconfig. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-micrometer-tracing-brave</artifactId>
+        </dependency>
+
         <!-- Google Cloud Storage -->
         <dependency>
             <groupId>com.google.cloud</groupId>
@@ -103,6 +111,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- @WebMvcTest slice — moved to its own module in Spring Boot 4 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

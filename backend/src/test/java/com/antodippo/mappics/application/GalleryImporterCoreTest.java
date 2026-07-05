@@ -8,7 +8,7 @@ import com.antodippo.mappics.infrastructure.location.FetchLocationDescriptionFro
 import com.antodippo.mappics.infrastructure.persistence.GalleryRepositoryInMemory;
 import com.antodippo.mappics.infrastructure.storage.GalleryFileStorageInMemory;
 import com.antodippo.mappics.infrastructure.weather.FetchWeatherDataFromOpenMeteo;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
