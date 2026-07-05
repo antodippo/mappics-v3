@@ -13,6 +13,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    ignore:
+      # Spring Boot 4.x requires Spring Framework 7 and a spring-cloud-gcp 8.x
+      # migration whose Boot 4 support is still incomplete upstream. Stay on 3.5.x
+      # until spring-cloud-gcp ships full Boot 4 support. See PR #32.
+      - dependency-name: org.springframework.boot:spring-boot-starter-parent
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions versions (scans .github/workflows)
   - package-ecosystem: github-actions
