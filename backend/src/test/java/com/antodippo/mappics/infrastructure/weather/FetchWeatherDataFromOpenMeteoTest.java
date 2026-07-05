@@ -3,7 +3,7 @@ package com.antodippo.mappics.infrastructure.weather;
 import com.antodippo.mappics.domain.GpsCoordinates;
 import com.antodippo.mappics.domain.WeatherData;
 import com.antodippo.mappics.infrastructure.http.HTTPClientThatAlwaysReturns;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
