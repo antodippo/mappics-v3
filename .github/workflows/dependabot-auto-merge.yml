@@ -1,7 +1,7 @@
 name: Dependabot auto-merge
 
 # Enables GitHub's native auto-merge on Dependabot PRs. GitHub then merges each
-# PR once the required status checks (Test, Build check) pass.
+# PR once the required status checks (Test, Build image, Build check) pass.
 #
 # Two things make this reliable:
 #   1. Auto-merge is enabled with DEPENDABOT_PAT — a fine-grained PAT (Contents,
@@ -13,7 +13,7 @@ name: Dependabot auto-merge
 #   2. Infra changes are excluded — a human merges those (see below).
 #
 # Also requires: "Allow auto-merge" enabled on the repo, and branch protection
-# on `main` with Test + Build check as required checks.
+# on `main` with Test + Build image + Build check as required checks.
 on: pull_request
 
 permissions:
