@@ -11,6 +11,13 @@ RUN ./mvnw dependency:go-offline -q
 COPY src/ src/
 RUN ./mvnw package -DskipTests -q
 
+# Fetch the Cloud Profiler agent here: the alpine build image ships wget
+# (busybox), the jammy runtime image does not. Extracted into the runtime
+# image via COPY below. The agent is a glibc native lib, run only at runtime.
+RUN mkdir -p /opt/cprof && \
+    wget -q -O- https://storage.googleapis.com/cloud-profiler/java/latest/profiler_java_agent.tar.gz \
+    | tar xz -C /opt/cprof
+
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
 # Must be glibc-based: grpc-netty-shaded bundles a native SSL lib (netty-tcnative)
 # compiled against glibc; Alpine (musl) causes a SIGSEGV on SSL context init.
@@ -20,9 +27,7 @@ WORKDIR /app
 # Run as an unprivileged user
 RUN groupadd --system spring && useradd --system --gid spring spring
 
-RUN mkdir -p /opt/cprof && \
-    wget -q -O- https://storage.googleapis.com/cloud-profiler/java/latest/profiler_java_agent.tar.gz \
-    | tar xzv -C /opt/cprof
+COPY --from=build /opt/cprof /opt/cprof
 
 USER spring
 
