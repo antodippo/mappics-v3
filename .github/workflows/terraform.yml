@@ -17,6 +17,11 @@ jobs:
   terraform:
     name: ${{ github.event_name == 'pull_request' && 'Plan' || 'Apply' }}
     runs-on: ubuntu-latest
+    # Skip on Dependabot PRs: Actions secrets (WIF_PROVIDER, service account)
+    # aren't exposed to Dependabot-triggered runs, so GCP auth — and therefore
+    # Plan — always fails. A github-actions version bump has no .tf changes to
+    # plan anyway; these PRs are reviewed and merged by a human.
+    if: github.actor != 'dependabot[bot]'
 
     # pull-requests: write is needed to post the plan as a PR comment
     permissions:
