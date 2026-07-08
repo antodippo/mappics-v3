@@ -32,7 +32,7 @@ function RecordCard({ title, stat, format, area }) {
   return (
     <Link
       to={`/gallery/${stat.galleryId}`}
-      state={{ from: '/stats', fromLabel: 'Stats' }}
+      state={{ from: '/stats', fromLabel: 'Stats', pictureId: stat.pictureId }}
       className="stat-card stat-record"
       style={area ? { gridArea: area } : undefined}
     >
