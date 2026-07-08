@@ -24,19 +24,31 @@
   letter-spacing: 0.04em;
 }
 
-.stats-subheading {
-  margin: 1.5rem 0 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #888;
+/* Logical groups, each its own row of cards. */
+.stats-row,
+.stats-pairs {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
 }
 
-.stats-grid {
+.stats-row.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stats-row.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Temperature (hottest·coldest) then date (oldest·newest), two per row. */
+.stats-pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Geographic extremes arranged as a compass; center holds the highest altitude.
+   Named areas keep each card in place even when a record is absent. */
+.stats-compass {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    ".    north  ."
+    "west center east"
+    ".    south  .";
   gap: 0.6rem;
+  margin: 0.6rem 0;
 }
 
 .stat-card {
@@ -94,4 +106,31 @@
 .stat-record .stat-value {
   font-size: 0.95rem;
   color: #4fc3f7;
+}
+
+/* Small label naming the gallery the record picture belongs to. */
+.stat-gallery {
+  font-size: 0.72rem;
+  color: #9aa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The compass centre (highest altitude) gets a subtle accent. */
+.stats-compass .stat-record[style*="center"] {
+  border-color: #4fc3f7;
+  background: rgba(79, 195, 247, 0.08);
+}
+
+@media (max-width: 600px) {
+  .stats-row.cols-3,
+  .stats-row.cols-2,
+  .stats-pairs {
+    grid-template-columns: 1fr;
+  }
+  .stats-compass {
+    grid-template-columns: 1fr;
+    grid-template-areas: "north" "west" "center" "east" "south";
+  }
 }

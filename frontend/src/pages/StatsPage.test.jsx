@@ -15,6 +15,7 @@ function renderPage() {
 const stat = (galleryId, value) => ({
   pictureId: `${galleryId}/p.jpg`,
   galleryId,
+  galleryName: galleryId[0].toUpperCase() + galleryId.slice(1),
   thumbnailUrl: `http://example.test/${galleryId}.jpg`,
   value,
 })
@@ -30,8 +31,8 @@ const statistics = (overrides = {}) => ({
   highestAltitude: stat('kenya', 1700),
   coldest: stat('chile', -5),
   hottest: stat('kenya', 30),
-  oldest: { pictureId: 'chile/p.jpg', galleryId: 'chile', thumbnailUrl: 't', takenAt: '2019-03-01T12:00:00' },
-  newest: { pictureId: 'kenya/p.jpg', galleryId: 'kenya', thumbnailUrl: 't', takenAt: '2022-12-01T12:00:00' },
+  oldest: { pictureId: 'chile/p.jpg', galleryId: 'chile', galleryName: 'Chile', thumbnailUrl: 't', takenAt: '2019-03-01T12:00:00' },
+  newest: { pictureId: 'kenya/p.jpg', galleryId: 'kenya', galleryName: 'Kenya', thumbnailUrl: 't', takenAt: '2022-12-01T12:00:00' },
   mostUsedCamera: 'Nikon D850',
   dateSpanDays: 1371,
   biggestGallery: { galleryId: 'iceland', name: 'Iceland', pictureCount: 42 },
@@ -49,17 +50,20 @@ describe('StatsPage', () => {
     expect(await screen.findByRole('link', { name: 'Mappics' })).toBeInTheDocument()
   })
 
-  it('renders scalar figures and the most-used camera', async () => {
+  it('renders the overview figures and the compass extremes', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(statistics())))
 
     renderPage()
 
     expect(await screen.findByText('128')).toBeInTheDocument()
-    expect(screen.getByText('Nikon D850')).toBeInTheDocument()
+    expect(screen.getByText('Iceland · 42')).toBeInTheDocument()
     // Distance is locale-formatted; assert the label + a km value rather than a fixed separator.
     expect(screen.getByText('Distance travelled')).toBeInTheDocument()
     expect(screen.getByText(content => content.includes('km'))).toBeInTheDocument()
-    expect(screen.getByText('Iceland · 42')).toBeInTheDocument()
+    // Compass extremes + centre altitude.
+    expect(screen.getByText('Northernmost')).toBeInTheDocument()
+    expect(screen.getByText('Highest')).toBeInTheDocument()
+    expect(screen.getByText(/1[.,]700\s*m/)).toBeInTheDocument()
   })
 
   it('links each record card to its gallery', async () => {
@@ -70,18 +74,22 @@ describe('StatsPage', () => {
     const northernmost = (await screen.findByText('Northernmost')).closest('a')
     expect(northernmost).toHaveAttribute('href', '/gallery/iceland')
     expect(screen.getByText('64.13° N')).toBeInTheDocument()
+    // The record card labels the gallery the picture belongs to.
+    expect(northernmost).toHaveTextContent('Iceland')
   })
 
   it('omits records that are absent', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
-      jsonResponse(statistics({ northernmost: null, mostUsedCamera: null })),
+      jsonResponse(statistics({ northernmost: null, hottest: null })),
     ))
 
     renderPage()
 
     await screen.findByRole('link', { name: 'Mappics' })
     expect(screen.queryByText('Northernmost')).not.toBeInTheDocument()
-    expect(screen.queryByText('Most-used camera')).not.toBeInTheDocument()
+    expect(screen.queryByText('Hottest')).not.toBeInTheDocument()
+    // A sibling record is still shown.
+    expect(screen.getByText('Southernmost')).toBeInTheDocument()
   })
 
   it('shows an error placeholder when the request fails', async () => {

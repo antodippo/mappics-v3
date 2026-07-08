@@ -41,8 +41,9 @@ function FitBounds({ pictures }) {
 export default function GalleryPage() {
   const { id } = useParams()
   const { state } = useLocation()
-  const backTo    = state?.from ?? '/'
-  const backLabel = state?.fromLabel ?? 'Mappics'
+  const backTo        = state?.from ?? '/'
+  const backLabel     = state?.fromLabel ?? 'Mappics'
+  const openPictureId = state?.pictureId
   const [gallery, setGallery]       = useState(null)
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState(null)
@@ -54,6 +55,14 @@ export default function GalleryPage() {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }, [id])
+
+  // When arriving with a specific picture (e.g. from the stats page), open its
+  // overlay directly instead of just showing the gallery.
+  useEffect(() => {
+    if (!gallery || !openPictureId) return
+    const idx = gallery.pictures.findIndex(p => p.id === openPictureId)
+    if (idx >= 0) setSelectedIdx(idx)
+  }, [gallery, openPictureId])
 
   useDocumentTitle(gallery ? `${gallery.name} · Mappics` : 'Mappics')
 

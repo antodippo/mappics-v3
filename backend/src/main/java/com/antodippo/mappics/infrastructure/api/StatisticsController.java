@@ -43,17 +43,17 @@ public class StatisticsController {
 
     // ── Response records ──────────────────────────────────────────────────────
 
-    record PictureStatResponse(String pictureId, String galleryId, String thumbnailUrl, double value) {
+    record PictureStatResponse(String pictureId, String galleryId, String galleryName, String thumbnailUrl, double value) {
         static PictureStatResponse from(Statistics.PictureStat s) {
             return s == null ? null
-                    : new PictureStatResponse(s.pictureId(), s.galleryId(), s.thumbnailUrl(), s.value());
+                    : new PictureStatResponse(s.pictureId(), s.galleryId(), s.galleryName(), s.thumbnailUrl(), s.value());
         }
     }
 
-    record DatedPictureStatResponse(String pictureId, String galleryId, String thumbnailUrl, String takenAt) {
+    record DatedPictureStatResponse(String pictureId, String galleryId, String galleryName, String thumbnailUrl, String takenAt) {
         static DatedPictureStatResponse from(Statistics.DatedPictureStat s) {
             return s == null ? null
-                    : new DatedPictureStatResponse(s.pictureId(), s.galleryId(), s.thumbnailUrl(), s.takenAt().toString());
+                    : new DatedPictureStatResponse(s.pictureId(), s.galleryId(), s.galleryName(), s.thumbnailUrl(), s.takenAt().toString());
         }
     }
 

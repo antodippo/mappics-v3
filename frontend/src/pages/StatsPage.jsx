@@ -25,16 +25,24 @@ function StatCard({ title, value }) {
 }
 
 // An extremum that resolves to a specific picture — links through to its gallery.
-function RecordCard({ title, stat, format }) {
+// `area` places the card in a named grid cell (used by the compass) so an absent
+// record leaves its cell empty instead of shifting the others.
+function RecordCard({ title, stat, format, area }) {
   if (!stat) return null
   return (
-    <Link to={`/gallery/${stat.galleryId}`} state={{ from: '/stats', fromLabel: 'Stats' }} className="stat-card stat-record">
+    <Link
+      to={`/gallery/${stat.galleryId}`}
+      state={{ from: '/stats', fromLabel: 'Stats', pictureId: stat.pictureId }}
+      className="stat-card stat-record"
+      style={area ? { gridArea: area } : undefined}
+    >
       {stat.thumbnailUrl && (
         <img src={stat.thumbnailUrl} alt="" className="stat-thumb" loading="lazy" />
       )}
       <span className="stat-body">
         <span className="stat-title">{title}</span>
         <span className="stat-value">{format(stat)}</span>
+        {stat.galleryName && <span className="stat-gallery">{stat.galleryName}</span>}
       </span>
     </Link>
   )
@@ -76,30 +84,33 @@ export default function StatsPage() {
       <section className="stats-panel">
         <h1 className="stats-heading">Statistics</h1>
 
-        <div className="stats-grid">
+        <div className="stats-row cols-3">
           <StatCard title="Pictures" value={stats.totalPictures.toLocaleString()} />
           <StatCard title="Galleries" value={stats.galleryCount.toLocaleString()} />
-          <StatCard title="Distance travelled" value={`${Math.round(stats.totalTraveledKm).toLocaleString()} km`} />
-          <StatCard title="Time span" value={stats.dateSpanDays == null ? null : `${stats.dateSpanDays.toLocaleString()} days`} />
-          <StatCard title="Average temperature" value={stats.averageTemperatureCelsius == null ? null : celsius(stats.averageTemperatureCelsius)} />
-          <StatCard title="Most-used camera" value={stats.mostUsedCamera} />
           <StatCard
             title="Biggest gallery"
             value={stats.biggestGallery && `${stats.biggestGallery.name} · ${stats.biggestGallery.pictureCount}`}
           />
         </div>
 
-        <h2 className="stats-subheading">Records</h2>
-        <div className="stats-grid">
-          <RecordCard title="Northernmost" stat={stats.northernmost} format={s => latLabel(s.value)} />
-          <RecordCard title="Southernmost" stat={stats.southernmost} format={s => latLabel(s.value)} />
-          <RecordCard title="Easternmost" stat={stats.easternmost} format={s => lonLabel(s.value)} />
-          <RecordCard title="Westernmost" stat={stats.westernmost} format={s => lonLabel(s.value)} />
-          <RecordCard title="Highest altitude" stat={stats.highestAltitude} format={s => metres(s.value)} />
-          <RecordCard title="Coldest" stat={stats.coldest} format={s => celsius(s.value)} />
+        <div className="stats-row cols-2">
+          <StatCard title="Distance travelled" value={`${Math.round(stats.totalTraveledKm).toLocaleString()} km`} />
+          <StatCard title="Time span" value={stats.dateSpanDays == null ? null : `${stats.dateSpanDays.toLocaleString()} days`} />
+        </div>
+
+        <div className="stats-compass">
+          <RecordCard area="north"  title="Northernmost" stat={stats.northernmost}    format={s => latLabel(s.value)} />
+          <RecordCard area="west"   title="Westernmost"  stat={stats.westernmost}     format={s => lonLabel(s.value)} />
+          <RecordCard area="center" title="Highest"      stat={stats.highestAltitude} format={s => metres(s.value)} />
+          <RecordCard area="east"   title="Easternmost"  stat={stats.easternmost}     format={s => lonLabel(s.value)} />
+          <RecordCard area="south"  title="Southernmost" stat={stats.southernmost}    format={s => latLabel(s.value)} />
+        </div>
+
+        <div className="stats-pairs">
           <RecordCard title="Hottest" stat={stats.hottest} format={s => celsius(s.value)} />
-          <RecordCard title="Oldest" stat={stats.oldest} format={s => day(s.takenAt)} />
-          <RecordCard title="Newest" stat={stats.newest} format={s => day(s.takenAt)} />
+          <RecordCard title="Coldest" stat={stats.coldest} format={s => celsius(s.value)} />
+          <RecordCard title="Oldest"  stat={stats.oldest}  format={s => day(s.takenAt)} />
+          <RecordCard title="Newest"  stat={stats.newest}  format={s => day(s.takenAt)} />
         </div>
       </section>
     </div>

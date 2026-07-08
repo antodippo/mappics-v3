@@ -48,6 +48,16 @@ describe('GalleryPage', () => {
     expect(back).toHaveAttribute('href', '/')
   })
 
+  it('opens the overlay for the picture passed in navigation state', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(makeGalleryDetail())))
+
+    renderGalleryPage({ pathname: '/gallery/g1', state: { pictureId: 'pic-2' } })
+
+    // pic-2 is the second of two pictures, so its overlay opens at 2 / 2.
+    expect(await screen.findByText('2 / 2')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+  })
+
   it('back link points to the referer page passed in navigation state', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(makeGalleryDetail())))
 
