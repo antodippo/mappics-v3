@@ -28,7 +28,7 @@ function StatCard({ title, value }) {
 function RecordCard({ title, stat, format }) {
   if (!stat) return null
   return (
-    <Link to={`/gallery/${stat.galleryId}`} className="stat-card stat-record">
+    <Link to={`/gallery/${stat.galleryId}`} state={{ from: '/stats', fromLabel: 'Stats' }} className="stat-card stat-record">
       {stat.thumbnailUrl && (
         <img src={stat.thumbnailUrl} alt="" className="stat-thumb" loading="lazy" />
       )}

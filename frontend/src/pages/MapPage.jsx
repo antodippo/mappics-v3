@@ -71,7 +71,7 @@ export default function MapPage() {
             key={gallery.id}
             position={[gallery.averageGps.latitude, gallery.averageGps.longitude]}
             icon={icon}
-            eventHandlers={{ click: () => navigate(`/gallery/${gallery.id}`) }}
+            eventHandlers={{ click: () => navigate(`/gallery/${gallery.id}`, { state: { from: '/', fromLabel: 'Mappics' } }) }}
           >
             <Tooltip direction="top" offset={[0, -10]}>{gallery.name}</Tooltip>
           </Marker>

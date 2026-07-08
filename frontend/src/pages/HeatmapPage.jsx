@@ -63,7 +63,7 @@ function PictureLayers({ points, navigate }) {
     const cluster = L.markerClusterGroup({ chunkedLoading: true })
     points.forEach(p => {
       const marker = L.marker([p.gps.latitude, p.gps.longitude], { icon: thumbIcon(p.thumbnailUrl) })
-      marker.on('click', () => navigate(`/gallery/${p.galleryId}`))
+      marker.on('click', () => navigate(`/gallery/${p.galleryId}`, { state: { from: '/heatmap', fromLabel: 'Heatmap' } }))
       cluster.addLayer(marker)
     })
     cluster.addTo(map)
