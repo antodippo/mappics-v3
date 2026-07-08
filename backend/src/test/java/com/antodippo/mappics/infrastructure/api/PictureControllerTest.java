@@ -1,31 +1,43 @@
 package com.antodippo.mappics.infrastructure.api;
 
-import com.antodippo.mappics.domain.GalleryRepository;
 import com.antodippo.mappics.domain.GpsCoordinates;
 import com.antodippo.mappics.domain.Picture;
 import com.antodippo.mappics.domain.PictureBuilder;
+import com.antodippo.mappics.infrastructure.persistence.GalleryRepositoryInMemory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PictureController.class)
+@Import(PictureControllerTest.TestConfig.class)
 class PictureControllerTest {
 
     @Autowired MockMvc mockMvc;
-    @MockitoBean GalleryRepository repository;
+    @Autowired GalleryRepositoryInMemory repository;
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        GalleryRepositoryInMemory galleryRepository() {
+            return new GalleryRepositoryInMemory();
+        }
+    }
+
+    @BeforeEach
+    void clearRepository() {
+        repository.clear();
+    }
 
     @Test
     void listPictures_returnsEmptyArray_whenNoPictures() throws Exception {
-        when(repository.findAllPictures()).thenReturn(List.of());
-
         mockMvc.perform(get("/api/pictures"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
@@ -42,7 +54,8 @@ class PictureControllerTest {
                 .withGalleryId("azores")
                 .build();
 
-        when(repository.findAllPictures()).thenReturn(List.of(iceland, azores));
+        repository.savePicture(iceland);
+        repository.savePicture(azores);
 
         mockMvc.perform(get("/api/pictures"))
                 .andExpect(status().isOk())
@@ -67,7 +80,8 @@ class PictureControllerTest {
                 .build();
         Picture withoutGps = Picture.create("iceland/raw.jpg", "iceland", "raw.jpg");
 
-        when(repository.findAllPictures()).thenReturn(List.of(withGps, withoutGps));
+        repository.savePicture(withGps);
+        repository.savePicture(withoutGps);
 
         mockMvc.perform(get("/api/pictures"))
                 .andExpect(status().isOk())
@@ -80,7 +94,7 @@ class PictureControllerTest {
         Picture noThumb = Picture.create("iceland/raw.jpg", "iceland", "raw.jpg")
                 .withGpsCoordinates(new GpsCoordinates(64.26, -21.12, null));
 
-        when(repository.findAllPictures()).thenReturn(List.of(noThumb));
+        repository.savePicture(noThumb);
 
         mockMvc.perform(get("/api/pictures"))
                 .andExpect(status().isOk())
