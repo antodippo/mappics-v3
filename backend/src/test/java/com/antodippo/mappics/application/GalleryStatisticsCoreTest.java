@@ -2,23 +2,29 @@ package com.antodippo.mappics.application;
 
 import com.antodippo.mappics.domain.*;
 import com.antodippo.mappics.infrastructure.persistence.GalleryRepositoryInMemory;
+import io.micrometer.tracing.test.simple.SimpleSpan;
+import io.micrometer.tracing.test.simple.SimpleTracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class GalleryStatisticsCoreTest {
 
     private GalleryRepositoryInMemory repository;
+    private SimpleTracer tracer;
     private GalleryStatistics useCase;
 
     @BeforeEach
     void setUp() {
         repository = new GalleryRepositoryInMemory();
-        useCase = new GalleryStatisticsCore(repository);
+        tracer = new SimpleTracer();
+        useCase = new GalleryStatisticsCore(repository, tracer);
     }
 
     @Test
@@ -83,6 +89,24 @@ class GalleryStatisticsCoreTest {
         assertEquals("Iceland", northernmost.galleryName());
         assertEquals("https://example.com/thumb.jpg", northernmost.thumbnailUrl());
         assertEquals(64.13, northernmost.value());
+    }
+
+    @Test
+    void emitsAChildSpanForEachComputedStat() {
+        savePicture("iceland/p1.jpg", "iceland", new GpsCoordinates(64.13, -21.90, 100.0),
+                LocalDateTime.of(2020, 1, 1, 12, 0), 2.0, "Nikon", "D850");
+
+        useCase.compute();
+
+        Set<String> spanNames = tracer.getSpans().stream()
+                .map(SimpleSpan::getName)
+                .collect(Collectors.toSet());
+        assertTrue(spanNames.contains("statistics.fetchPictures"));
+        assertTrue(spanNames.contains("statistics.northernmost"));
+        assertTrue(spanNames.contains("statistics.totalTraveledKm"));
+        assertTrue(spanNames.contains("statistics.hottest"));
+        assertTrue(spanNames.contains("statistics.biggestGallery"));
+        assertTrue(spanNames.contains("statistics.averageTemperature"));
     }
 
     @Test

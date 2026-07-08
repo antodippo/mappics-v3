@@ -1,6 +1,8 @@
 package com.antodippo.mappics.application;
 
 import com.antodippo.mappics.domain.*;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
@@ -17,36 +20,48 @@ import java.util.stream.Collectors;
 public class GalleryStatisticsCore implements GalleryStatistics {
 
     private final GalleryRepository repository;
+    private final Tracer            tracer;
 
-    public GalleryStatisticsCore(GalleryRepository repository) {
+    public GalleryStatisticsCore(GalleryRepository repository, Tracer tracer) {
         this.repository = repository;
+        this.tracer     = tracer;
     }
 
     @Override
     public Statistics compute() {
-        List<Picture> pictures = repository.findAllPictures();
-        List<Gallery> galleries = repository.findAll();
+        List<Picture> pictures = traced("fetchPictures", repository::findAllPictures);
+        List<Gallery> galleries = traced("fetchGalleries", repository::findAll);
         Map<String, String> galleryNames = galleries.stream()
                 .collect(Collectors.toMap(Gallery::getId, Gallery::getName));
 
         return new Statistics(
                 pictures.size(),
                 galleries.size(),
-                totalTraveledKm(pictures),
-                gpsExtremum(pictures, GpsCoordinates::latitude, true, galleryNames),
-                gpsExtremum(pictures, GpsCoordinates::latitude, false, galleryNames),
-                gpsExtremum(pictures, GpsCoordinates::longitude, true, galleryNames),
-                gpsExtremum(pictures, GpsCoordinates::longitude, false, galleryNames),
-                highestAltitude(pictures, galleryNames),
-                weatherExtremum(pictures, false, galleryNames),
-                weatherExtremum(pictures, true, galleryNames),
-                oldestOrNewest(pictures, false, galleryNames),
-                oldestOrNewest(pictures, true, galleryNames),
-                mostUsedCamera(pictures),
-                dateSpanDays(pictures),
-                biggestGallery(galleries),
-                averageTemperature(pictures)
+                traced("totalTraveledKm",   () -> totalTraveledKm(pictures)),
+                traced("northernmost",      () -> gpsExtremum(pictures, GpsCoordinates::latitude, true, galleryNames)),
+                traced("southernmost",      () -> gpsExtremum(pictures, GpsCoordinates::latitude, false, galleryNames)),
+                traced("easternmost",       () -> gpsExtremum(pictures, GpsCoordinates::longitude, true, galleryNames)),
+                traced("westernmost",       () -> gpsExtremum(pictures, GpsCoordinates::longitude, false, galleryNames)),
+                traced("highestAltitude",   () -> highestAltitude(pictures, galleryNames)),
+                traced("coldest",           () -> weatherExtremum(pictures, false, galleryNames)),
+                traced("hottest",           () -> weatherExtremum(pictures, true, galleryNames)),
+                traced("oldest",            () -> oldestOrNewest(pictures, false, galleryNames)),
+                traced("newest",            () -> oldestOrNewest(pictures, true, galleryNames)),
+                traced("mostUsedCamera",    () -> mostUsedCamera(pictures)),
+                traced("dateSpanDays",      () -> dateSpanDays(pictures)),
+                traced("biggestGallery",    () -> biggestGallery(galleries)),
+                traced("averageTemperature", () -> averageTemperature(pictures))
         );
+    }
+
+    // Each stat gets its own child span so the trace shows where the time goes.
+    private <T> T traced(String name, Supplier<T> computation) {
+        Span span = tracer.nextSpan().name("statistics." + name).start();
+        try (Tracer.SpanInScope ignored = tracer.withSpan(span)) {
+            return computation.get();
+        } finally {
+            span.end();
+        }
     }
 
     private Statistics.PictureStat gpsExtremum(List<Picture> pictures, ToDoubleFunction<GpsCoordinates> value, boolean max, Map<String, String> galleryNames) {
