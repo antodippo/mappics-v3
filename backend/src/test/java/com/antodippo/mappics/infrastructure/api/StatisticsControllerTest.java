@@ -24,15 +24,15 @@ class StatisticsControllerTest {
     void returnsAggregatesAndExtremums() throws Exception {
         when(statistics.compute()).thenReturn(new Statistics(
                 42, 5, 1234.5,
-                new Statistics.PictureStat("iceland/p1.jpg", "iceland", "http://thumb/p1.jpg", 64.13),
-                new Statistics.PictureStat("chile/p3.jpg", "chile", "http://thumb/p3.jpg", -53.1),
-                new Statistics.PictureStat("kenya/p4.jpg", "kenya", "http://thumb/p4.jpg", 36.8),
-                new Statistics.PictureStat("chile/p3.jpg", "chile", "http://thumb/p3.jpg", -70.9),
-                new Statistics.PictureStat("kenya/p4.jpg", "kenya", "http://thumb/p4.jpg", 1700.0),
-                new Statistics.PictureStat("chile/p3.jpg", "chile", "http://thumb/p3.jpg", -5.0),
-                new Statistics.PictureStat("kenya/p4.jpg", "kenya", "http://thumb/p4.jpg", 30.0),
-                new Statistics.DatedPictureStat("chile/p3.jpg", "chile", "http://thumb/p3.jpg", LocalDateTime.of(2019, 3, 1, 12, 0)),
-                new Statistics.DatedPictureStat("kenya/p4.jpg", "kenya", "http://thumb/p4.jpg", LocalDateTime.of(2022, 12, 1, 12, 0)),
+                new Statistics.PictureStat("iceland/p1.jpg", "iceland", "Iceland", "http://thumb/p1.jpg", 64.13),
+                new Statistics.PictureStat("chile/p3.jpg", "chile", "Chile", "http://thumb/p3.jpg", -53.1),
+                new Statistics.PictureStat("kenya/p4.jpg", "kenya", "Kenya", "http://thumb/p4.jpg", 36.8),
+                new Statistics.PictureStat("chile/p3.jpg", "chile", "Chile", "http://thumb/p3.jpg", -70.9),
+                new Statistics.PictureStat("kenya/p4.jpg", "kenya", "Kenya", "http://thumb/p4.jpg", 1700.0),
+                new Statistics.PictureStat("chile/p3.jpg", "chile", "Chile", "http://thumb/p3.jpg", -5.0),
+                new Statistics.PictureStat("kenya/p4.jpg", "kenya", "Kenya", "http://thumb/p4.jpg", 30.0),
+                new Statistics.DatedPictureStat("chile/p3.jpg", "chile", "Chile", "http://thumb/p3.jpg", LocalDateTime.of(2019, 3, 1, 12, 0)),
+                new Statistics.DatedPictureStat("kenya/p4.jpg", "kenya", "Kenya", "http://thumb/p4.jpg", LocalDateTime.of(2022, 12, 1, 12, 0)),
                 "Nikon D850", 1371,
                 new Statistics.BiggestGallery("iceland", "Iceland", 12), 13.0
         ));
@@ -44,6 +44,7 @@ class StatisticsControllerTest {
                 .andExpect(jsonPath("$.totalTraveledKm").value(1234.5))
                 .andExpect(jsonPath("$.northernmost.pictureId").value("iceland/p1.jpg"))
                 .andExpect(jsonPath("$.northernmost.galleryId").value("iceland"))
+                .andExpect(jsonPath("$.northernmost.galleryName").value("Iceland"))
                 .andExpect(jsonPath("$.northernmost.thumbnailUrl").value("http://thumb/p1.jpg"))
                 .andExpect(jsonPath("$.northernmost.value").value(64.13))
                 .andExpect(jsonPath("$.oldest.takenAt").value("2019-03-01T12:00"))

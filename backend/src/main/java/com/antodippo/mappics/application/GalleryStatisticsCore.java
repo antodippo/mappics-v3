@@ -26,20 +26,22 @@ public class GalleryStatisticsCore implements GalleryStatistics {
     public Statistics compute() {
         List<Picture> pictures = repository.findAllPictures();
         List<Gallery> galleries = repository.findAll();
+        Map<String, String> galleryNames = galleries.stream()
+                .collect(Collectors.toMap(Gallery::getId, Gallery::getName));
 
         return new Statistics(
                 pictures.size(),
                 galleries.size(),
                 totalTraveledKm(pictures),
-                gpsExtremum(pictures, GpsCoordinates::latitude, true),
-                gpsExtremum(pictures, GpsCoordinates::latitude, false),
-                gpsExtremum(pictures, GpsCoordinates::longitude, true),
-                gpsExtremum(pictures, GpsCoordinates::longitude, false),
-                highestAltitude(pictures),
-                weatherExtremum(pictures, false),
-                weatherExtremum(pictures, true),
-                oldestOrNewest(pictures, false),
-                oldestOrNewest(pictures, true),
+                gpsExtremum(pictures, GpsCoordinates::latitude, true, galleryNames),
+                gpsExtremum(pictures, GpsCoordinates::latitude, false, galleryNames),
+                gpsExtremum(pictures, GpsCoordinates::longitude, true, galleryNames),
+                gpsExtremum(pictures, GpsCoordinates::longitude, false, galleryNames),
+                highestAltitude(pictures, galleryNames),
+                weatherExtremum(pictures, false, galleryNames),
+                weatherExtremum(pictures, true, galleryNames),
+                oldestOrNewest(pictures, false, galleryNames),
+                oldestOrNewest(pictures, true, galleryNames),
                 mostUsedCamera(pictures),
                 dateSpanDays(pictures),
                 biggestGallery(galleries),
@@ -47,39 +49,40 @@ public class GalleryStatisticsCore implements GalleryStatistics {
         );
     }
 
-    private Statistics.PictureStat gpsExtremum(List<Picture> pictures, ToDoubleFunction<GpsCoordinates> value, boolean max) {
+    private Statistics.PictureStat gpsExtremum(List<Picture> pictures, ToDoubleFunction<GpsCoordinates> value, boolean max, Map<String, String> galleryNames) {
         Comparator<Picture> byValue = Comparator.comparingDouble(p -> value.applyAsDouble(p.getGpsCoordinates().orElseThrow()));
         return pictures.stream()
                 .filter(p -> p.getGpsCoordinates().isPresent())
                 .max(max ? byValue : byValue.reversed())
-                .map(p -> stat(p, value.applyAsDouble(p.getGpsCoordinates().orElseThrow())))
+                .map(p -> stat(p, value.applyAsDouble(p.getGpsCoordinates().orElseThrow()), galleryNames))
                 .orElse(null);
     }
 
-    private Statistics.PictureStat highestAltitude(List<Picture> pictures) {
+    private Statistics.PictureStat highestAltitude(List<Picture> pictures, Map<String, String> galleryNames) {
         return pictures.stream()
                 .filter(p -> p.getGpsCoordinates().map(GpsCoordinates::altitude).isPresent())
                 .max(Comparator.comparingDouble(p -> p.getGpsCoordinates().orElseThrow().altitude()))
-                .map(p -> stat(p, p.getGpsCoordinates().orElseThrow().altitude()))
+                .map(p -> stat(p, p.getGpsCoordinates().orElseThrow().altitude(), galleryNames))
                 .orElse(null);
     }
 
-    private Statistics.PictureStat weatherExtremum(List<Picture> pictures, boolean hottest) {
+    private Statistics.PictureStat weatherExtremum(List<Picture> pictures, boolean hottest, Map<String, String> galleryNames) {
         Comparator<Picture> byTemp = Comparator.comparingDouble(p -> p.getWeatherData().orElseThrow().temperatureCelsius());
         return pictures.stream()
                 .filter(p -> p.getWeatherData().isPresent())
                 .max(hottest ? byTemp : byTemp.reversed())
-                .map(p -> stat(p, p.getWeatherData().orElseThrow().temperatureCelsius()))
+                .map(p -> stat(p, p.getWeatherData().orElseThrow().temperatureCelsius(), galleryNames))
                 .orElse(null);
     }
 
-    private Statistics.DatedPictureStat oldestOrNewest(List<Picture> pictures, boolean newest) {
+    private Statistics.DatedPictureStat oldestOrNewest(List<Picture> pictures, boolean newest, Map<String, String> galleryNames) {
         Comparator<Picture> byTakenAt = Comparator.comparing(p -> takenAt(p).orElseThrow());
         return pictures.stream()
                 .filter(p -> takenAt(p).isPresent())
                 .max(newest ? byTakenAt : byTakenAt.reversed())
                 .map(p -> new Statistics.DatedPictureStat(
-                        p.getId(), p.getGalleryId(), p.getThumbnailUrl().orElse(null), takenAt(p).orElseThrow()))
+                        p.getId(), p.getGalleryId(), galleryName(p, galleryNames),
+                        p.getThumbnailUrl().orElse(null), takenAt(p).orElseThrow()))
                 .orElse(null);
     }
 
@@ -153,8 +156,13 @@ public class GalleryStatisticsCore implements GalleryStatistics {
         return (make + " " + model).trim();
     }
 
-    private static Statistics.PictureStat stat(Picture picture, double value) {
+    private static Statistics.PictureStat stat(Picture picture, double value, Map<String, String> galleryNames) {
         return new Statistics.PictureStat(
-                picture.getId(), picture.getGalleryId(), picture.getThumbnailUrl().orElse(null), value);
+                picture.getId(), picture.getGalleryId(), galleryName(picture, galleryNames),
+                picture.getThumbnailUrl().orElse(null), value);
+    }
+
+    private static String galleryName(Picture picture, Map<String, String> galleryNames) {
+        return galleryNames.getOrDefault(picture.getGalleryId(), picture.getGalleryId());
     }
 }

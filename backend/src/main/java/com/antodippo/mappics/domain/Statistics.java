@@ -24,9 +24,9 @@ public record Statistics(
         Double averageTemperatureCelsius
 ) {
 
-    public record PictureStat(String pictureId, String galleryId, String thumbnailUrl, double value) {}
+    public record PictureStat(String pictureId, String galleryId, String galleryName, String thumbnailUrl, double value) {}
 
-    public record DatedPictureStat(String pictureId, String galleryId, String thumbnailUrl, LocalDateTime takenAt) {}
+    public record DatedPictureStat(String pictureId, String galleryId, String galleryName, String thumbnailUrl, LocalDateTime takenAt) {}
 
     public record BiggestGallery(String galleryId, String name, int pictureCount) {}
 }

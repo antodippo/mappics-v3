@@ -68,7 +68,8 @@ class GalleryStatisticsCoreTest {
     }
 
     @Test
-    void extremumThumbnailAndGalleryComeFromThePicture() {
+    void extremumCarriesThePicturesGalleryIdNameThumbnailAndValue() {
+        repository.save(Gallery.create("iceland").withPictureIds(List.of("iceland/p1.jpg")));
         Picture picture = new PictureBuilder()
                 .withId("iceland/p1.jpg")
                 .withGalleryId("iceland")
@@ -79,8 +80,21 @@ class GalleryStatisticsCoreTest {
         Statistics.PictureStat northernmost = useCase.compute().northernmost();
 
         assertEquals("iceland", northernmost.galleryId());
+        assertEquals("Iceland", northernmost.galleryName());
         assertEquals("https://example.com/thumb.jpg", northernmost.thumbnailUrl());
         assertEquals(64.13, northernmost.value());
+    }
+
+    @Test
+    void galleryNameFallsBackToTheIdWhenTheGalleryIsUnknown() {
+        Picture picture = new PictureBuilder()
+                .withId("orphan/p1.jpg")
+                .withGalleryId("orphan")
+                .build()
+                .withGpsCoordinates(new GpsCoordinates(64.13, -21.90, 100.0));
+        repository.savePicture(picture);
+
+        assertEquals("orphan", useCase.compute().northernmost().galleryName());
     }
 
     @Test

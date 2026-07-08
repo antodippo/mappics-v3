@@ -108,6 +108,15 @@
   color: #4fc3f7;
 }
 
+/* Small label naming the gallery the record picture belongs to. */
+.stat-gallery {
+  font-size: 0.72rem;
+  color: #9aa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* The compass centre (highest altitude) gets a subtle accent. */
 .stats-compass .stat-record[style*="center"] {
   border-color: #4fc3f7;

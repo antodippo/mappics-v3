@@ -42,6 +42,7 @@ function RecordCard({ title, stat, format, area }) {
       <span className="stat-body">
         <span className="stat-title">{title}</span>
         <span className="stat-value">{format(stat)}</span>
+        {stat.galleryName && <span className="stat-gallery">{stat.galleryName}</span>}
       </span>
     </Link>
   )

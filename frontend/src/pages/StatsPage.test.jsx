@@ -15,6 +15,7 @@ function renderPage() {
 const stat = (galleryId, value) => ({
   pictureId: `${galleryId}/p.jpg`,
   galleryId,
+  galleryName: galleryId[0].toUpperCase() + galleryId.slice(1),
   thumbnailUrl: `http://example.test/${galleryId}.jpg`,
   value,
 })
@@ -30,8 +31,8 @@ const statistics = (overrides = {}) => ({
   highestAltitude: stat('kenya', 1700),
   coldest: stat('chile', -5),
   hottest: stat('kenya', 30),
-  oldest: { pictureId: 'chile/p.jpg', galleryId: 'chile', thumbnailUrl: 't', takenAt: '2019-03-01T12:00:00' },
-  newest: { pictureId: 'kenya/p.jpg', galleryId: 'kenya', thumbnailUrl: 't', takenAt: '2022-12-01T12:00:00' },
+  oldest: { pictureId: 'chile/p.jpg', galleryId: 'chile', galleryName: 'Chile', thumbnailUrl: 't', takenAt: '2019-03-01T12:00:00' },
+  newest: { pictureId: 'kenya/p.jpg', galleryId: 'kenya', galleryName: 'Kenya', thumbnailUrl: 't', takenAt: '2022-12-01T12:00:00' },
   mostUsedCamera: 'Nikon D850',
   dateSpanDays: 1371,
   biggestGallery: { galleryId: 'iceland', name: 'Iceland', pictureCount: 42 },
@@ -73,6 +74,8 @@ describe('StatsPage', () => {
     const northernmost = (await screen.findByText('Northernmost')).closest('a')
     expect(northernmost).toHaveAttribute('href', '/gallery/iceland')
     expect(screen.getByText('64.13° N')).toBeInTheDocument()
+    // The record card labels the gallery the picture belongs to.
+    expect(northernmost).toHaveTextContent('Iceland')
   })
 
   it('omits records that are absent', async () => {
