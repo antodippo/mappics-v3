@@ -2,32 +2,46 @@ package com.antodippo.mappics.infrastructure.api;
 
 import com.antodippo.mappics.domain.*;
 import com.antodippo.mappics.domain.PictureBuilder;
+import com.antodippo.mappics.infrastructure.persistence.GalleryRepositoryInMemory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(GalleryController.class)
+@Import(GalleryControllerTest.TestConfig.class)
 class GalleryControllerTest {
 
     @Autowired MockMvc mockMvc;
-    @MockitoBean GalleryRepository repository;
+    @Autowired GalleryRepositoryInMemory repository;
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        GalleryRepositoryInMemory galleryRepository() {
+            return new GalleryRepositoryInMemory();
+        }
+    }
+
+    @BeforeEach
+    void clearRepository() {
+        repository.clear();
+    }
 
     // ── GET /api/galleries ────────────────────────────────────────────────────
 
     @Test
     void listGalleries_returnsEmptyArray_whenNoGalleries() throws Exception {
-        when(repository.findAll()).thenReturn(List.of());
-
         mockMvc.perform(get("/api/galleries"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
@@ -41,7 +55,8 @@ class GalleryControllerTest {
         Gallery azores = Gallery.create("azores")
                 .withPictureIds(List.of("azores/p3.jpg"));
 
-        when(repository.findAll()).thenReturn(List.of(iceland, azores));
+        repository.save(iceland);
+        repository.save(azores);
 
         mockMvc.perform(get("/api/galleries"))
                 .andExpect(status().isOk())
@@ -57,7 +72,7 @@ class GalleryControllerTest {
 
     @Test
     void listGalleries_includesNullAverageGps_whenGalleryNotYetProcessed() throws Exception {
-        when(repository.findAll()).thenReturn(List.of(Gallery.create("iceland")));
+        repository.save(Gallery.create("iceland"));
 
         mockMvc.perform(get("/api/galleries"))
                 .andExpect(status().isOk())
@@ -68,17 +83,13 @@ class GalleryControllerTest {
 
     @Test
     void getGallery_returns404_whenNotFound() throws Exception {
-        when(repository.findById("missing")).thenReturn(Optional.empty());
-
         mockMvc.perform(get("/api/galleries/missing"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void getGallery_returnsGalleryWithEmptyPictures_whenNoneProcessed() throws Exception {
-        Gallery gallery = Gallery.create("iceland");
-        when(repository.findById("iceland")).thenReturn(Optional.of(gallery));
-        when(repository.findPicturesByGalleryId("iceland")).thenReturn(List.of());
+        repository.save(Gallery.create("iceland"));
 
         mockMvc.perform(get("/api/galleries/iceland"))
                 .andExpect(status().isOk())
@@ -97,8 +108,8 @@ class GalleryControllerTest {
                 .withOriginalFilename("DSC_0114.JPG")
                 .build();
 
-        when(repository.findById("iceland")).thenReturn(Optional.of(gallery));
-        when(repository.findPicturesByGalleryId("iceland")).thenReturn(List.of(picture));
+        repository.save(gallery);
+        repository.savePicture(picture);
 
         mockMvc.perform(get("/api/galleries/iceland"))
                 .andExpect(status().isOk())
@@ -119,8 +130,8 @@ class GalleryControllerTest {
         Gallery gallery = Gallery.create("iceland").withPictureIds(List.of("iceland/raw.JPG"));
         Picture picture = Picture.create("iceland/raw.JPG", "iceland", "raw.JPG");
 
-        when(repository.findById("iceland")).thenReturn(Optional.of(gallery));
-        when(repository.findPicturesByGalleryId("iceland")).thenReturn(List.of(picture));
+        repository.save(gallery);
+        repository.savePicture(picture);
 
         mockMvc.perform(get("/api/galleries/iceland"))
                 .andExpect(status().isOk())
@@ -145,8 +156,8 @@ class GalleryControllerTest {
                 .withLocationDescription(new LocationDescription("Reykjavik", "Iceland"))
                 .withWeatherData(new WeatherData(10.5, 72, 8.5, 1, "Mainly clear"));
 
-        when(repository.findById("iceland")).thenReturn(Optional.of(gallery));
-        when(repository.findPicturesByGalleryId("iceland")).thenReturn(List.of(picture));
+        repository.save(gallery);
+        repository.savePicture(picture);
 
         mockMvc.perform(get("/api/galleries/iceland"))
                 .andExpect(status().isOk())

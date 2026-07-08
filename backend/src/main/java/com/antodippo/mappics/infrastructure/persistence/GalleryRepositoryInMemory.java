@@ -5,15 +5,15 @@ import com.antodippo.mappics.domain.GalleryRepository;
 import com.antodippo.mappics.domain.Picture;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class GalleryRepositoryInMemory implements GalleryRepository {
 
-    private final Map<String, Gallery> galleries = new HashMap<>();
-    private final Map<String, Picture> pictures = new HashMap<>();
+    private final Map<String, Gallery> galleries = new LinkedHashMap<>();
+    private final Map<String, Picture> pictures = new LinkedHashMap<>();
 
     @Override
     public void save(Gallery gallery) {
@@ -50,5 +50,10 @@ public class GalleryRepositoryInMemory implements GalleryRepository {
     @Override
     public List<Picture> findAllPictures() {
         return new ArrayList<>(pictures.values());
+    }
+
+    public void clear() {
+        galleries.clear();
+        pictures.clear();
     }
 }
