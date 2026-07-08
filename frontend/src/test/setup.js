@@ -16,15 +16,26 @@ vi.mock('react-leaflet', async () => {
     TileLayer: box('tile-layer'),
     Marker: box('marker'),
     Tooltip: box('tooltip'),
+    ZoomControl: box('zoom-control'),
     useMap: () => ({
       fitBounds: () => {},
       setView: () => {},
       getZoom: () => 8,
       addControl: () => {},
       removeControl: () => {},
+      on: () => {},
+      off: () => {},
     }),
   }
 })
+
+// ── Leaflet plugins ───────────────────────────────────────────────────────────
+// leaflet.heat / leaflet.markercluster are legacy UMD modules that mutate a
+// global `L`; they can't run against the mocked leaflet below, so neutralise
+// their side-effect imports. The factory functions they'd add are stubbed on the
+// leaflet mock instead.
+vi.mock('leaflet.heat', () => ({}))
+vi.mock('leaflet.markercluster', () => ({}))
 
 // ── leaflet ─────────────────────────────────────────────────────────────────
 // Just enough of the imperative API the components touch: divIcon (icons),
@@ -34,6 +45,9 @@ vi.mock('react-leaflet', async () => {
 vi.mock('leaflet', () => {
   const L = {
     divIcon: (options) => ({ options }),
+    marker: vi.fn(() => ({ on: () => {} })),
+    heatLayer: vi.fn(() => ({ addTo: () => {}, remove: () => {} })),
+    markerClusterGroup: vi.fn(() => ({ addLayer: () => {}, addTo: () => {}, remove: () => {} })),
     control: () => {
       const ctrl = {
         onAdd: null,

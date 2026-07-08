@@ -6,13 +6,17 @@ import { BASEMAPS, DEFAULT_BASEMAP } from '../basemaps.js'
 
 const STORAGE_KEY = 'mappics.basemap'
 
-export default function BasemapLayer({ compact = false }) {
+export default function BasemapLayer({
+  compact = false,
+  defaultKey = DEFAULT_BASEMAP,
+  storageKey = STORAGE_KEY,
+}) {
   const [activeKey, setActiveKey] = useState(
-    () => localStorage.getItem(STORAGE_KEY) || DEFAULT_BASEMAP)
+    () => localStorage.getItem(storageKey) || defaultKey)
 
   const select = key => {
     setActiveKey(key)
-    localStorage.setItem(STORAGE_KEY, key)
+    localStorage.setItem(storageKey, key)
   }
 
   const base = BASEMAPS.find(b => b.key === activeKey) ?? BASEMAPS[0]

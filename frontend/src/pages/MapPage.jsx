@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
-import { MapContainer, Marker, Tooltip, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Tooltip, ZoomControl, useMap } from 'react-leaflet'
 import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import { fetchGalleries } from '../api/client.js'
 import BasemapLayer from '../components/BasemapLayer.jsx'
+import AppHeader from '../components/AppHeader.jsx'
 import useDocumentTitle from '../useDocumentTitle.js'
 import './MapPage.css'
 
@@ -51,18 +52,18 @@ export default function MapPage() {
 
   return (
     <div className="map-page">
-      <header className="map-header">
-        <span className="map-title">Mappics</span>
-      </header>
+      <AppHeader />
 
       <MapContainer
         center={[30, 10]}
         zoom={2}
         minZoom={2}
         worldCopyJump
+        zoomControl={false}
         className="leaflet-map"
       >
         <BasemapLayer />
+        <ZoomControl position="bottomright" />
         <FitBounds galleries={mapped} />
 
         {mapped.map(gallery => (

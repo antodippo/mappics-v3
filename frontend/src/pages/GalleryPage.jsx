@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { MapContainer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, Marker, ZoomControl, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { fetchGallery } from '../api/client.js'
 import PictureOverlay from '../components/PictureOverlay.jsx'
@@ -85,9 +85,11 @@ export default function GalleryPage() {
           <MapContainer
             center={[mappable[0].gps.latitude, mappable[0].gps.longitude]}
             zoom={8}
+            zoomControl={false}
             className="gallery-leaflet-map"
           >
             <BasemapLayer />
+            <ZoomControl position="bottomright" />
             <FitBounds pictures={pictures} />
             {pictures.map((pic, i) =>
               pic.gps ? (

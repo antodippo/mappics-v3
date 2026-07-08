@@ -76,6 +76,14 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
         return snap.getDocuments().stream().map(doc -> toPicture(doc)).toList();
     }
 
+    @Override
+    public List<Picture> findAllPictures() {
+        // Pictures live in a per-gallery subcollection; a collection-group query
+        // reads every "pictures" subcollection in one pass (no composite index needed).
+        QuerySnapshot snap = await(firestore.collectionGroup(PICTURES).get());
+        return snap.getDocuments().stream().map(doc -> toPicture(doc)).toList();
+    }
+
     // ── Serialisation ─────────────────────────────────────────────────────────
 
     private static Map<String, Object> galleryToMap(Gallery gallery) {

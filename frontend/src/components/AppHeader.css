@@ -1,0 +1,49 @@
+/* Floating top-left header pill, shared across the full-map pages. */
+.app-header {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(15, 15, 35, 0.85);
+  padding: 0.5rem 1.25rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(6px);
+}
+
+.app-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+
+.app-title:hover { color: #fff; }
+
+.app-nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.app-nav-link {
+  font-size: 0.85rem;
+  color: #cfd8dc;
+  text-decoration: none;
+  padding: 0.25rem 0.7rem;
+  border-radius: 1rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-nav-link:hover {
+  background: rgba(79, 195, 247, 0.18);
+  color: #fff;
+}
+
+.app-nav-link.active {
+  background: #4fc3f7;
+  color: #0f0f1e;
+  font-weight: 600;
+}

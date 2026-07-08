@@ -23,6 +23,33 @@ body {
   color: #888;
 }
 
+/* Full-screen map page layout, shared by MapPage and HeatmapPage. */
+.map-page {
+  height: 100%;
+  position: relative;
+}
+
+.leaflet-map {
+  height: 100%;
+  width: 100%;
+  background: #1a1a2e;
+}
+
+.map-empty-notice {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(15, 15, 35, 0.85);
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  color: #aaa;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
 /* Basemap style switcher (bottom-right map control) */
 .basemap-switcher {
   display: flex;

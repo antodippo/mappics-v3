@@ -8,3 +8,4 @@ async function request(path) {
 
 export const fetchGalleries = () => request('/api/galleries')
 export const fetchGallery   = (id) => request(`/api/galleries/${encodeURIComponent(id)}`)
+export const fetchPictures  = () => request('/api/pictures')

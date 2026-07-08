@@ -138,6 +138,24 @@ abstract class GalleryRepositoryAbstractTest {
     }
 
     @Test
+    void findAllPicturesReturnsPicturesAcrossEveryGallery() {
+        repository.savePicture(Picture.create("iceland/p1.jpg", "iceland", "p1.jpg"));
+        repository.savePicture(Picture.create("iceland/p2.jpg", "iceland", "p2.jpg"));
+        repository.savePicture(Picture.create("azores/p3.jpg", "azores", "p3.jpg"));
+
+        List<Picture> all = repository.findAllPictures();
+
+        assertEquals(3, all.size());
+        assertTrue(all.stream().anyMatch(p -> p.getId().equals("iceland/p1.jpg")));
+        assertTrue(all.stream().anyMatch(p -> p.getId().equals("azores/p3.jpg")));
+    }
+
+    @Test
+    void findAllPicturesReturnsEmptyWhenNoPictures() {
+        assertTrue(repository.findAllPictures().isEmpty());
+    }
+
+    @Test
     void nullExifDataRoundtripsAsAbsent() {
         Picture picture = Picture.create("iceland/p1.jpg", "iceland", "p1.jpg");
         repository.savePicture(picture);
