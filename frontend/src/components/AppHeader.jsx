@@ -11,6 +11,7 @@ export default function AppHeader() {
       <nav className="app-nav">
         <NavLink to="/" end className="app-nav-link">Galleries</NavLink>
         <NavLink to="/heatmap" className="app-nav-link">Heatmap</NavLink>
+        <NavLink to="/stats" className="app-nav-link">Stats</NavLink>
       </nav>
     </header>
   )

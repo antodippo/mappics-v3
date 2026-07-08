@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import { MapContainer, Marker, ZoomControl, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { fetchGallery } from '../api/client.js'
@@ -40,6 +40,9 @@ function FitBounds({ pictures }) {
 
 export default function GalleryPage() {
   const { id } = useParams()
+  const { state } = useLocation()
+  const backTo    = state?.from ?? '/'
+  const backLabel = state?.fromLabel ?? 'Mappics'
   const [gallery, setGallery]       = useState(null)
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState(null)
@@ -75,7 +78,7 @@ export default function GalleryPage() {
   return (
     <div className="gallery-page">
       <header className="gallery-header">
-        <Link to="/" className="back-link">← Mappics</Link>
+        <Link to={backTo} className="back-link">← {backLabel}</Link>
         <h1 className="gallery-title">{gallery.name}</h1>
         <span className="gallery-count">{pictures.length} photos</span>
       </header>

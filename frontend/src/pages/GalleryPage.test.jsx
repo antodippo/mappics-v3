@@ -5,9 +5,9 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import GalleryPage from './GalleryPage.jsx'
 import { makeGalleryDetail, jsonResponse } from '../test/fixtures.js'
 
-function renderGalleryPage() {
+function renderGalleryPage(entry = '/gallery/g1') {
   return render(
-    <MemoryRouter initialEntries={['/gallery/g1']}>
+    <MemoryRouter initialEntries={[entry]}>
       <Routes>
         <Route path="/gallery/:id" element={<GalleryPage />} />
       </Routes>
@@ -37,5 +37,23 @@ describe('GalleryPage', () => {
 
     expect(screen.getByText('1 / 2')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+  })
+
+  it('back link defaults to the home map when no referer is given', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(makeGalleryDetail())))
+
+    renderGalleryPage()
+
+    const back = await screen.findByRole('link', { name: '← Mappics' })
+    expect(back).toHaveAttribute('href', '/')
+  })
+
+  it('back link points to the referer page passed in navigation state', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(makeGalleryDetail())))
+
+    renderGalleryPage({ pathname: '/gallery/g1', state: { from: '/stats', fromLabel: 'Stats' } })
+
+    const back = await screen.findByRole('link', { name: '← Stats' })
+    expect(back).toHaveAttribute('href', '/stats')
   })
 })
