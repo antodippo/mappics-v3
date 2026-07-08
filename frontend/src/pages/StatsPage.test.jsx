@@ -49,17 +49,20 @@ describe('StatsPage', () => {
     expect(await screen.findByRole('link', { name: 'Mappics' })).toBeInTheDocument()
   })
 
-  it('renders scalar figures and the most-used camera', async () => {
+  it('renders the overview figures and the compass extremes', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(statistics())))
 
     renderPage()
 
     expect(await screen.findByText('128')).toBeInTheDocument()
-    expect(screen.getByText('Nikon D850')).toBeInTheDocument()
+    expect(screen.getByText('Iceland · 42')).toBeInTheDocument()
     // Distance is locale-formatted; assert the label + a km value rather than a fixed separator.
     expect(screen.getByText('Distance travelled')).toBeInTheDocument()
     expect(screen.getByText(content => content.includes('km'))).toBeInTheDocument()
-    expect(screen.getByText('Iceland · 42')).toBeInTheDocument()
+    // Compass extremes + centre altitude.
+    expect(screen.getByText('Northernmost')).toBeInTheDocument()
+    expect(screen.getByText('Highest')).toBeInTheDocument()
+    expect(screen.getByText(/1[.,]700\s*m/)).toBeInTheDocument()
   })
 
   it('links each record card to its gallery', async () => {
@@ -74,14 +77,16 @@ describe('StatsPage', () => {
 
   it('omits records that are absent', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
-      jsonResponse(statistics({ northernmost: null, mostUsedCamera: null })),
+      jsonResponse(statistics({ northernmost: null, hottest: null })),
     ))
 
     renderPage()
 
     await screen.findByRole('link', { name: 'Mappics' })
     expect(screen.queryByText('Northernmost')).not.toBeInTheDocument()
-    expect(screen.queryByText('Most-used camera')).not.toBeInTheDocument()
+    expect(screen.queryByText('Hottest')).not.toBeInTheDocument()
+    // A sibling record is still shown.
+    expect(screen.getByText('Southernmost')).toBeInTheDocument()
   })
 
   it('shows an error placeholder when the request fails', async () => {
