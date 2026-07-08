@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { fetchGalleries, fetchGallery, fetchPictures } from './client.js'
+import { fetchGalleries, fetchGallery, fetchPictures, fetchStatistics } from './client.js'
 import { jsonResponse } from '../test/fixtures.js'
 
 describe('api/client', () => {
@@ -31,6 +31,17 @@ describe('api/client', () => {
     const result = await fetchPictures()
 
     expect(fetch).toHaveBeenCalledWith('/api/pictures')
+    expect(result).toEqual(body)
+  })
+
+  it('fetchStatistics GETs /api/statistics and returns parsed JSON', async () => {
+    const body = { totalPictures: 42, galleryCount: 5 }
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(body))
+    vi.stubGlobal('fetch', fetch)
+
+    const result = await fetchStatistics()
+
+    expect(fetch).toHaveBeenCalledWith('/api/statistics')
     expect(result).toEqual(body)
   })
 

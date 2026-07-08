@@ -19,11 +19,12 @@ describe('AppHeader', () => {
     expect(title).toHaveAttribute('href', '/')
   })
 
-  it('renders the Galleries and Heatmap nav links', () => {
+  it('renders the Galleries, Heatmap and Stats nav links', () => {
     renderHeader()
 
     expect(screen.getByRole('link', { name: 'Galleries' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Heatmap' })).toHaveAttribute('href', '/heatmap')
+    expect(screen.getByRole('link', { name: 'Stats' })).toHaveAttribute('href', '/stats')
   })
 
   it('marks the Heatmap link active on that route', () => {
