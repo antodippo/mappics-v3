@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { fetchGalleries, fetchGallery } from './client.js'
+import { fetchGalleries, fetchGallery, fetchPictures } from './client.js'
 import { jsonResponse } from '../test/fixtures.js'
 
 describe('api/client', () => {
@@ -21,6 +21,17 @@ describe('api/client', () => {
     await fetchGallery('a/b')
 
     expect(fetch).toHaveBeenCalledWith('/api/galleries/a%2Fb')
+  })
+
+  it('fetchPictures GETs /api/pictures and returns parsed JSON', async () => {
+    const body = [{ id: 'g1/p1', galleryId: 'g1', gps: { latitude: 1, longitude: 2 } }]
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(body))
+    vi.stubGlobal('fetch', fetch)
+
+    const result = await fetchPictures()
+
+    expect(fetch).toHaveBeenCalledWith('/api/pictures')
+    expect(result).toEqual(body)
   })
 
   it('throws with the status code on a non-ok response', async () => {

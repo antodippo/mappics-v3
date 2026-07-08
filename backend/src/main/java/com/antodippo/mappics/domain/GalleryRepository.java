@@ -12,4 +12,5 @@ public interface GalleryRepository {
     void savePicture(Picture picture);
     Optional<Picture> findPictureById(String pictureId);
     List<Picture> findPicturesByGalleryId(String galleryId);
+    List<Picture> findAllPictures();
 }

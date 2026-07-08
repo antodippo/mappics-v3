@@ -46,4 +46,9 @@ public class GalleryRepositoryInMemory implements GalleryRepository {
                 .filter(p -> p.getGalleryId().equals(galleryId))
                 .toList();
     }
+
+    @Override
+    public List<Picture> findAllPictures() {
+        return new ArrayList<>(pictures.values());
+    }
 }
