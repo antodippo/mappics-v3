@@ -61,6 +61,16 @@ class GalleryImporterCoreTest {
     }
 
     @Test
+    void writesResizedImagesToStorage() {
+        useCase.importGalleries(job());
+
+        assertTrue(fileStorage.thumbnailExists("iceland", "DSC_0114.JPG"),
+                "Thumbnail must actually be written to storage, not just referenced by URL");
+        assertTrue(fileStorage.fullSizeExists("iceland", "DSC_0114.JPG"),
+                "Full-size image must actually be written to storage, not just referenced by URL");
+    }
+
+    @Test
     void createsGalleryWithAverageGpsAndPictureIds() {
         useCase.importGalleries(job());
 
