@@ -42,6 +42,40 @@ jobs:
         run: ./mvnw clean verify -B
         working-directory: backend
 
+  mutation-test:
+    name: Mutation test
+    # Runs on every trigger, in parallel with `test` (no `needs`) and without a
+    # path filter, mirroring `test`. Fails if the mutation score drops below the
+    # threshold in pom.xml; the HTML report is uploaded as a workflow artifact
+    # either way. Unit tests only — no Docker needed.
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run mutation tests (PIT)
+        run: ./mvnw test-compile pitest:mutationCoverage -B
+        working-directory: backend
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pit-mutation-report
+          path: backend/target/pit-reports
+          retention-days: 30
+
   build-image:
     name: Build image
     # PR-only: catches Dockerfile / base-image regressions (e.g. a tool missing
