@@ -32,7 +32,7 @@ test: ## Unit tests (fast, no Docker)
 verify: ## Unit + Firestore-emulator integration tests (needs Docker Desktop)
 	$(MVN) verify
 
-mutation: ## Mutation testing (PIT) — fails under 80% score; report in target/pit-reports/index.html
+mutation: ## Mutation testing (PIT) — fails under 85% score; report in target/pit-reports/index.html
 	$(MVN) test-compile pitest:mutationCoverage
 
 build: ## Clean build the runnable jar

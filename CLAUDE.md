@@ -38,7 +38,7 @@ docker-compose up --build
 cd backend
 ./mvnw test        # unit tests (fast, no Docker)
 ./mvnw verify      # + Firestore emulator IT (needs Docker Desktop with default socket enabled)
-make mutation      # PIT mutation testing (fails < 80% score; report in target/pit-reports/index.html)
+make mutation      # PIT mutation testing (fails < 85% score; report in target/pit-reports/index.html)
 ```
 
 ## Triggering an import

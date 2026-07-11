@@ -216,8 +216,8 @@
                         <param>*IT</param>
                     </excludedTestClasses>
                     <threads>4</threads>
-                    <!-- Fail below 80% killed mutations (82% when introduced) -->
-                    <mutationThreshold>80</mutationThreshold>
+                    <!-- Fail below 85% killed mutations (88% as of the first hardening pass) -->
+                    <mutationThreshold>85</mutationThreshold>
                     <timestampedReports>false</timestampedReports>
                     <outputFormats>
                         <param>HTML</param>
