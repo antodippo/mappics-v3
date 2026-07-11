@@ -13,7 +13,7 @@ JOB      ?=
 
 .DEFAULT_GOAL := help
 
-.PHONY: help run test verify build clean docker-up docker-down \
+.PHONY: help run test verify mutation build clean docker-up docker-down \
         import-local import-status-local \
         import-prod import-logs-prod import-executions-prod
 
@@ -31,6 +31,9 @@ test: ## Unit tests (fast, no Docker)
 
 verify: ## Unit + Firestore-emulator integration tests (needs Docker Desktop)
 	$(MVN) verify
+
+mutation: ## Mutation testing (PIT) — fails under 85% score; report in target/pit-reports/index.html
+	$(MVN) test-compile pitest:mutationCoverage
 
 build: ## Clean build the runnable jar
 	$(MVN) clean package

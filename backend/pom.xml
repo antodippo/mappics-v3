@@ -21,6 +21,8 @@
         <spring-cloud-gcp.version>8.0.4</spring-cloud-gcp.version>
         <spring-cloud.version>2025.1.2</spring-cloud.version>
         <testcontainers.version>1.21.3</testcontainers.version>
+        <pitest.version>1.19.1</pitest.version>
+        <pitest-junit5.version>1.2.2</pitest-junit5.version>
     </properties>
 
     <dependencyManagement>
@@ -170,6 +172,58 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Mutation testing (PIT). On demand only: `make mutation` or
+                 `./mvnw test-compile pitest:mutationCoverage`. Report in target/pit-reports. -->
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>${pitest.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>${pitest-junit5.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>com.antodippo.mappics.*</param>
+                    </targetClasses>
+                    <excludedClasses>
+                        <!-- Bootstrap / Spring wiring — nothing to assert on -->
+                        <param>com.antodippo.mappics.MappicsApplication</param>
+                        <param>com.antodippo.mappics.infrastructure.persistence.PersistenceConfiguration</param>
+                        <param>com.antodippo.mappics.infrastructure.storage.StorageConfiguration</param>
+                        <!-- Local-dev-only scaffolding -->
+                        <param>com.antodippo.mappics.infrastructure.LocalConfiguration</param>
+                        <param>com.antodippo.mappics.infrastructure.LocalDevSeeder</param>
+                        <param>com.antodippo.mappics.infrastructure.http.HTTPClientForLocalDev</param>
+                        <param>com.antodippo.mappics.infrastructure.api.LocalImageController</param>
+                        <!-- Covered only by Docker/GCP integration tests, which PIT doesn't run -->
+                        <param>com.antodippo.mappics.infrastructure.persistence.GalleryRepositoryUsingFirestore</param>
+                        <param>com.antodippo.mappics.infrastructure.storage.GalleryFileStorageWithGoogleStorage</param>
+                        <param>com.antodippo.mappics.infrastructure.http.HTTPClientWithJavaHttpClient</param>
+                        <param>com.antodippo.mappics.infrastructure.job.ImportJobRunner</param>
+                    </excludedClasses>
+                    <!-- Unit tests only: ITs need Docker, and the context-load test
+                         would drag the full Spring context into every mutant run -->
+                    <excludedGroups>
+                        <param>integration</param>
+                    </excludedGroups>
+                    <excludedTestClasses>
+                        <param>com.antodippo.mappics.MappicsApplicationTest</param>
+                        <param>*IT</param>
+                    </excludedTestClasses>
+                    <threads>4</threads>
+                    <!-- Fail below 85% killed mutations (88% as of the first hardening pass) -->
+                    <mutationThreshold>85</mutationThreshold>
+                    <timestampedReports>false</timestampedReports>
+                    <outputFormats>
+                        <param>HTML</param>
+                        <param>XML</param>
+                    </outputFormats>
+                </configuration>
             </plugin>
         </plugins>
     </build>

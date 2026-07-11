@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,6 +59,16 @@ class GalleryImporterCoreTest {
         assertTrue(picture.getExifData().isPresent());
         assertTrue(picture.getLocationDescription().isPresent());
         assertTrue(picture.getWeatherData().isPresent());
+    }
+
+    @Test
+    void writesResizedImagesToStorage() {
+        useCase.importGalleries(job());
+
+        assertTrue(fileStorage.thumbnailExists("iceland", "DSC_0114.JPG"),
+                "Thumbnail must actually be written to storage, not just referenced by URL");
+        assertTrue(fileStorage.fullSizeExists("iceland", "DSC_0114.JPG"),
+                "Full-size image must actually be written to storage, not just referenced by URL");
     }
 
     @Test
@@ -147,6 +158,39 @@ class GalleryImporterCoreTest {
         assertEquals(1, job.getProcessedPictures());
         assertNull(job.getCurrentGallery()); // cleared on complete
         assertNotNull(job.getCompletedAt());
+    }
+
+    @Test
+    void marksJobFailedAndRethrowsWhenImportBlowsUp() {
+        var explodingStorage = new GalleryFileStorageInMemory("http://localhost/processed") {
+            @Override
+            public List<String> listGalleryIds() {
+                throw new IllegalStateException("Simulated storage outage");
+            }
+        };
+        var uc = importerFor(explodingStorage, new GalleryRepositoryInMemory());
+        ImportJob job = job();
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> uc.importGalleries(job));
+
+        assertEquals("Simulated storage outage", ex.getMessage(), "Exception must propagate so the job exits non-zero");
+        assertEquals(ImportJobStatus.FAILED, job.getStatus());
+        assertFalse(job.isRunning());
+        assertNotNull(job.getCompletedAt());
+        assertTrue(job.getErrors().getFirst().contains("Simulated storage outage"));
+    }
+
+    @Test
+    void jobIsInProgressWhileGalleriesAreProcessed() {
+        List<ImportJobStatus> statusSeenByProcessor = new ArrayList<>();
+        GalleryProcessor recordingProcessor = (galleryId, job) -> statusSeenByProcessor.add(job.getStatus());
+        var uc = new GalleryImporterCore(fileStorage, recordingProcessor);
+        ImportJob job = job();
+
+        uc.importGalleries(job);
+
+        assertEquals(List.of(ImportJobStatus.IN_PROGRESS), statusSeenByProcessor);
+        assertNotNull(job.getStartedAt());
     }
 
     @Test
