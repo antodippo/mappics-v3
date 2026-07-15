@@ -100,7 +100,7 @@
         <dependency>
             <groupId>com.sksamuel.scrimage</groupId>
             <artifactId>scrimage-core</artifactId>
-            <version>4.6.5</version>
+            <version>4.6.6</version>
         </dependency>
 
         <!-- Logging -->
