@@ -67,7 +67,7 @@ For team use or CI/CD, store state in GCS:
 
 ```bash
 # Create the state bucket manually (only once, outside Terraform)
-gsutil mb -l europe-west1 gs://mappics-tf-state-YOUR_PROJECT
+gcloud storage buckets create gs://mappics-tf-state-YOUR_PROJECT --location=europe-west1
 
 # Then uncomment the backend block in gcp/main.tf and fill in the bucket name,
 # and run: terraform init -migrate-state
