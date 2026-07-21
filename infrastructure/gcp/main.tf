@@ -19,7 +19,7 @@ terraform {
   #
   # Remote state (recommended):
   #   terraform init -backend-config="bucket=YOUR_STATE_BUCKET"
-  #   Create the bucket first: gsutil mb -l REGION gs://YOUR_STATE_BUCKET
+  #   Create the bucket first: gcloud storage buckets create gs://YOUR_STATE_BUCKET --location=REGION
   backend "gcs" {
     prefix = "mappics/gcp"
     # bucket is passed via -backend-config at init time (CI and local remote runs)
