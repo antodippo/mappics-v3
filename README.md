@@ -7,7 +7,7 @@ A map-based photo gallery. Point it at a Google Cloud Storage bucket full of geo
 ## How it works
 
 1. Upload JPEGs to a GCS bucket, organised in folders by location (`Iceland/`, `Azores/`, …).
-2. Hit `POST /import` — the backend extracts GPS, EXIF, weather (Open-Meteo) and location names (OpenStreetMap Nominatim), resizes images, and writes everything to Firestore.
+2. Run the import — `gcloud run jobs execute mappics-import-job` in production, or `POST /import` when running locally. It extracts GPS, EXIF, weather (Open-Meteo) and location names (OpenStreetMap Nominatim), resizes images, and writes everything to Firestore.
 3. The React frontend reads the REST API and renders the gallery.
 
 ---
