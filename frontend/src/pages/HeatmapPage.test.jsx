@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import L from 'leaflet'
 import HeatmapPage from './HeatmapPage.jsx'
@@ -39,8 +39,9 @@ describe('HeatmapPage', () => {
 
     renderPage()
 
-    await screen.findByRole('link', { name: 'Mappics' })
-    expect(L.markerClusterGroup).toHaveBeenCalled()
+    // The header link lands in the DOM one commit before PictureLayers' passive
+    // effect builds the cluster, so wait on the effect itself, not on the DOM.
+    await waitFor(() => expect(L.markerClusterGroup).toHaveBeenCalled())
     expect(L.marker).toHaveBeenCalledWith([46.5, 6.6], expect.any(Object))
   })
 
