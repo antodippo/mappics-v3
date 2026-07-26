@@ -80,7 +80,14 @@ public class GalleryRepositoryUsingFirestore implements GalleryRepository {
     public List<Picture> findAllPictures() {
         // Pictures live in a per-gallery subcollection; a collection-group query
         // reads every "pictures" subcollection in one pass (no composite index needed).
-        QuerySnapshot snap = await(firestore.collectionGroup(PICTURES).get());
+        // The field mask keeps the response small: only the fields the bulk read-only
+        // consumers (map, statistics) use — see GalleryRepository.findAllPictures().
+        QuerySnapshot snap = await(firestore.collectionGroup(PICTURES)
+                .select("id", "galleryId", "thumbnailUrl",
+                        "gpsLatitude", "gpsLongitude", "gpsAltitude",
+                        "exif.cameraMake", "exif.cameraModel", "exif.takenAt",
+                        "weather.temperatureCelsius")
+                .get());
         return snap.getDocuments().stream().map(doc -> toPicture(doc)).toList();
     }
 

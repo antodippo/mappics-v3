@@ -4,6 +4,7 @@ import com.antodippo.mappics.domain.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -148,6 +149,31 @@ abstract class GalleryRepositoryAbstractTest {
         assertEquals(3, all.size());
         assertTrue(all.stream().anyMatch(p -> p.getId().equals("iceland/p1.jpg")));
         assertTrue(all.stream().anyMatch(p -> p.getId().equals("azores/p3.jpg")));
+    }
+
+    // Pins the fields the findAllPictures projection guarantees (see GalleryRepository).
+    // Adapters may return more, but map and statistics rely on exactly these.
+    @Test
+    void findAllPicturesPopulatesTheGuaranteedProjectionFields() {
+        repository.savePicture(new PictureBuilder()
+                .withId("iceland/DSC_0001.JPG")
+                .withGalleryId("iceland")
+                .build());
+
+        Picture found = repository.findAllPictures().stream()
+                .filter(p -> p.getId().equals("iceland/DSC_0001.JPG"))
+                .findFirst().orElseThrow();
+
+        assertEquals("iceland", found.getGalleryId());
+        assertEquals("https://example.com/thumb.jpg", found.getThumbnailUrl().orElseThrow());
+        GpsCoordinates gps = found.getGpsCoordinates().orElseThrow();
+        assertEquals(51.5, gps.latitude(), 0.001);
+        assertEquals(-0.1, gps.longitude(), 0.001);
+        ExifData exif = found.getExifData().orElseThrow();
+        assertEquals("Canon", exif.cameraMake());
+        assertEquals("EOS 5D", exif.cameraModel());
+        assertEquals(LocalDateTime.of(2023, 6, 15, 14, 30), exif.takenAt());
+        assertEquals(18.5, found.getWeatherData().orElseThrow().temperatureCelsius(), 0.01);
     }
 
     @Test

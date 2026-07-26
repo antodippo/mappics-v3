@@ -12,5 +12,13 @@ public interface GalleryRepository {
     void savePicture(Picture picture);
     Optional<Picture> findPictureById(String pictureId);
     List<Picture> findPicturesByGalleryId(String galleryId);
+
+    /**
+     * Bulk read-only projection for consumers that scan every picture (world map,
+     * statistics). Only id, galleryId, thumbnailUrl, GPS, camera make/model,
+     * takenAt and weather temperature are guaranteed to be populated; adapters may
+     * omit everything else. Never re-save pictures loaded through this method —
+     * use {@link #findPicturesByGalleryId(String)} for full-fidelity reads.
+     */
     List<Picture> findAllPictures();
 }
