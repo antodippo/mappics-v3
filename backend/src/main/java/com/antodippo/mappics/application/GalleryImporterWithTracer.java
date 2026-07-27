@@ -30,6 +30,7 @@ public class GalleryImporterWithTracer implements GalleryImporter {
             span.tag("errors", String.valueOf(job.getErrors().size()));
         } catch (Exception e) {
             span.error(e);
+            throw e; // ImportJobRunner turns this into a non-zero exit so Cloud Run marks the execution failed
         } finally {
             span.end();
             MDC.clear();
