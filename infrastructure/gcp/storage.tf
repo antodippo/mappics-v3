@@ -33,8 +33,12 @@ resource "google_storage_bucket" "processed" {
 
 # Allow anyone to read objects in the processed bucket so the frontend can load
 # images directly from https://storage.googleapis.com/{bucket}/{object}.
+#
+# legacyObjectReader, not objectViewer: the latter also grants storage.objects.list,
+# which lets anyone enumerate the whole bucket with one unauthenticated API call.
+# The frontend only ever fetches URLs it already knows, so it needs objects.get only.
 resource "google_storage_bucket_iam_member" "processed_public_read" {
   bucket = google_storage_bucket.processed.name
-  role   = "roles/storage.objectViewer"
+  role   = "roles/storage.legacyObjectReader"
   member = "allUsers"
 }
