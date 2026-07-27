@@ -37,12 +37,16 @@ jobs:
 
             IMPORTANT: You MUST always post exactly one top-level comment with `gh pr comment`,
             even when you find nothing to report. This is non-negotiable - the comment is how we
-            confirm the review actually ran. If the changes look good, say so explicitly and
-            summarise what you checked. The comment must:
+            confirm the review actually ran. The comment must:
             - start with the heading "## Claude review"
             - end with a one-line verdict (e.g. "No issues found")
             - have this exact marker as its very last line, copied verbatim:
               <!-- claude-review: ${{ github.event.pull_request.head.sha }} -->
+
+            Be concise. A few lines is the target and a clean PR should be two or three.
+            Don't restate the diff, don't enumerate the categories you checked, and don't
+            pad with praise - reviewers read every one of these, so only write what changes
+            what they do. Raise something only if it's worth their time to act on.
 
             Use `mcp__github_inline_comment__create_inline_comment` (with `confirmed: true`) to highlight specific code issues.
             Only post GitHub comments - don't submit review text as messages.
@@ -50,8 +54,8 @@ jobs:
           claude_args: |
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
 
-      # Runs whatever happened above, so the PR always shows whether the review executed.
-      # Upserts a single sticky comment instead of piling one up per push.
+      # Speaks up only when the review did NOT happen. On a clean run Claude's own
+      # review comment is the proof it ran, so adding a second one is just noise.
       - name: Post review status
         if: always()
         env:
@@ -70,18 +74,25 @@ jobs:
           REVIEWS=$(printf '%s' "$COMMENTS" \
                     | jq -r ".[] | select(.body | contains(\"<!-- claude-review: $SHA -->\")) | .id")
 
+          IDS=$(printf '%s' "$COMMENTS" \
+                | jq -r '.[] | select(.body | startswith("<!-- claude-review-status -->")) | .id')
+          ID=$(printf '%s\n' "$IDS" | head -n1)
+
           if [ "$OUTCOME" != "success" ]; then
             TEXT="⚠️ Claude auto review did **not** complete on \`${SHA:0:7}\` (step outcome: \`$OUTCOME\`). No review feedback was posted. ([run log]($RUN_URL))"
           elif [ -z "$REVIEWS" ]; then
             TEXT="⚠️ Claude auto review ran on \`${SHA:0:7}\` but posted **no review comment** — treat this PR as unreviewed. ([run log]($RUN_URL))"
           else
-            TEXT="✅ Claude auto review ran on \`${SHA:0:7}\` — see its review comment on this PR. ([run log]($RUN_URL))"
+            # Clean run: stay quiet, but clear a warning left by an earlier push so it
+            # doesn't keep claiming the PR is unreviewed.
+            if [ -n "$ID" ]; then
+              gh api -X PATCH "repos/$REPO/issues/comments/$ID" \
+                -f body="$MARKER
+          ✅ Resolved - Claude reviewed \`${SHA:0:7}\`. ([run log]($RUN_URL))"
+            fi
+            exit 0
           fi
           BODY=$(printf '%s\n%s' "$MARKER" "$TEXT")
-
-          IDS=$(printf '%s' "$COMMENTS" \
-                | jq -r '.[] | select(.body | startswith("<!-- claude-review-status -->")) | .id')
-          ID=$(printf '%s\n' "$IDS" | head -n1)
 
           if [ -n "$ID" ]; then
             gh api -X PATCH "repos/$REPO/issues/comments/$ID" -f body="$BODY"
