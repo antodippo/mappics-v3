@@ -46,3 +46,15 @@ resource "google_project_service" "cloudprofiler" {
   service            = "cloudprofiler.googleapis.com"
   disable_on_destroy = false
 }
+
+# Uptime checks, notification channels and alert policies (monitoring.tf)
+resource "google_project_service" "monitoring" {
+  service            = "monitoring.googleapis.com"
+  disable_on_destroy = false
+}
+
+# Required for google_billing_budget
+resource "google_project_service" "billing_budgets" {
+  service            = "billingbudgets.googleapis.com"
+  disable_on_destroy = false
+}
