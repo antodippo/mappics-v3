@@ -81,7 +81,37 @@ variable "import_secret" {
   sensitive   = true
 }
 
-# ── Firebase Hosting ──────────────────────────────────────────────────────────
+# ── Monitoring & alerting ─────────────────────────────────────────────────────
+
+variable "alert_email" {
+  description = "Email address that receives every uptime, error and budget alert. A single channel is shared by all alert policies."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$", var.alert_email))
+    error_message = "alert_email must be a valid email address. In CI it comes from the ALERT_EMAIL repository variable — set it with: gh variable set ALERT_EMAIL --body you@example.com"
+  }
+}
+
+variable "billing_account_id" {
+  description = "Billing account ID (e.g. 0X0X0X-0X0X0X-0X0X0X) that owns the project. Set to enable the monthly budget alert; leave empty to skip it — budgets live on the billing account, which project-level roles cannot reach. Find it with: gcloud billing projects describe <project_id> --format='value(billingAccountName)'"
+  type        = string
+  default     = ""
+}
+
+variable "monthly_budget_amount" {
+  description = "Monthly spend that triggers the budget alert, in whole units of budget_currency."
+  type        = number
+  default     = 10
+}
+
+variable "budget_currency" {
+  description = "ISO 4217 currency for monthly_budget_amount. Must match the billing account currency or the budget API rejects it."
+  type        = string
+  default     = "EUR"
+}
+
+# ── Workload Identity Federation ──────────────────────────────────────────────
 
 variable "github_repository" {
   description = "GitHub repository in 'owner/repo' format. Only Actions tokens from this repo can impersonate the CI/CD service account via Workload Identity Federation."

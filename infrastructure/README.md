@@ -55,10 +55,15 @@ region                = "europe-west1"          # or us-central1, etc.
 firestore_location    = "europe-west1"
 source_bucket_name    = "mappics-source-abc123"    # globally unique
 processed_bucket_name = "mappics-processed-abc123" # globally unique
+alert_email           = "you@example.com"          # receives all alerts
 ```
 
 > **Bucket names must be globally unique** across all GCP projects worldwide.  
 > A safe pattern: `mappics-source-<your-project-id>`.
+
+`alert_email` is required — every alert policy notifies this single channel. To
+also get the monthly budget alert, set `billing_account_id` (see
+[Monitoring & alerting](#monitoring--alerting) below).
 
 ### 4. (Optional) Set up a remote state bucket
 
@@ -125,6 +130,8 @@ After `terraform apply`, set the following in **GitHub → Settings → Secrets 
 | `TF_STATE_BUCKET` | terraform | name of the GCS bucket holding Terraform state |
 | `TF_SOURCE_BUCKET` | terraform | `terraform output -raw source_bucket_name` |
 | `TF_PROCESSED_BUCKET` | terraform | `terraform output -raw processed_bucket_name` |
+| `ALERT_EMAIL` | terraform | email address that receives alerts — **required**, `terraform plan` fails without it |
+| `BILLING_ACCOUNT_ID` | terraform | optional; billing account ID for the budget alert (`gcloud billing projects describe <project_id> --format='value(billingAccountName)'`) |
 
 Quick reference — run these in `infrastructure/gcp/` after applying:
 
@@ -180,6 +187,53 @@ In CI/CD (step 18) this is injected automatically from the Terraform outputs.
 | Cloud Run job (`mappics-import-job`) | Runs the photo import with full (non-throttled) CPU; billed per execution. Trigger with `gcloud run jobs execute mappics-import-job`. See `.claude/plans/import-cloud-run-job.md` |
 | Firebase project linkage | Firebase enabled on the GCP project |
 | Firebase Hosting site | SPA hosting with `**` → `/index.html` rewrite; Vite assets cached for 1 year |
+| Uptime checks ×2 | Poll the backend `/actuator/health` and the Hosting URL every 5 min from all regions |
+| Alert policies ×5 | Backend down, frontend down, 5xx responses, import job failed, monthly budget |
+| Email notification channel | Single destination for every alert |
+
+---
+
+## Monitoring & alerting
+
+Defined in `gcp/monitoring.tf`, all on Cloud Run's built-in metrics — no code
+changes, and free at this scale.
+
+| Alert | Fires when |
+|---|---|
+| Backend down | `/actuator/health` uptime check fails from more than one region |
+| Frontend down | Hosting URL uptime check fails from more than one region |
+| 5xx responses | Any 5xx from `mappics-backend` in a 5-minute window (traffic is low, so any 5xx is signal) |
+| Import job failed | A `mappics-import-job` execution ends with `result=failed` — the job already retries 3×, so this means retries are exhausted |
+| Monthly budget | Spend reaches 90% then 100% of €10 in the calendar month |
+
+### Verify the email channel
+
+GCP sends a verification email when the notification channel is first created.
+**Until you click the link, alerts fire but deliver nowhere.** Check the inbox
+for `alert_email` after the first apply.
+
+### Budget alert requires billing-account permissions
+
+Budgets live on the billing account, not the project, so `roles/editor` on the
+project is not enough. The budget is skipped entirely while
+`billing_account_id` is empty — the other four alerts apply normally.
+
+To enable it, grant the Terraform service account access to the billing account
+and set the variable:
+
+```bash
+gcloud billing accounts add-iam-policy-binding BILLING_ACCOUNT_ID \
+  --member="serviceAccount:$(terraform output -raw terraform_service_account_email)" \
+  --role="roles/billing.costsManager"
+
+gh variable set BILLING_ACCOUNT_ID --body BILLING_ACCOUNT_ID
+```
+
+Alternatively, apply that one resource from a local run with your own
+credentials and leave the CI variable unset.
+
+`budget_currency` must match the billing account currency (`gcloud billing
+accounts describe BILLING_ACCOUNT_ID`) or the API rejects the budget.
 
 ---
 

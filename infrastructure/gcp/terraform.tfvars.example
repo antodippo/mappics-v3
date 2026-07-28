@@ -9,5 +9,15 @@ processed_bucket_name = "mappics-processed-yourproject" # must be globally uniqu
 
 github_repository     = "your-github-username/mappics-v3"  # owner/repo format, used for Workload Identity Federation
 
+# Monitoring — receives uptime, 5xx, import-failure and budget alerts
+alert_email = "you@example.com"
+
 # Optional — defaults to project_id if omitted
 # firebase_site_id    = "mappics-yourproject"
+
+# Optional — enables the monthly budget alert. Budgets live on the billing
+# account, so this needs roles/billing.costsManager there (see README).
+#   gcloud billing projects describe <project_id> --format='value(billingAccountName)'
+# billing_account_id    = "0X0X0X-0X0X0X-0X0X0X"
+# monthly_budget_amount = 10
+# budget_currency       = "EUR"   # must match the billing account currency

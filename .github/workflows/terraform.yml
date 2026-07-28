@@ -43,6 +43,10 @@ jobs:
       # github.repository is "owner/repo" — exactly the format the variable expects
       TF_VAR_github_repository:     ${{ github.repository }}
       TF_VAR_import_secret:         ${{ secrets.TF_IMPORT_SECRET }}
+      # Monitoring: ALERT_EMAIL is required (plan fails without it).
+      # BILLING_ACCOUNT_ID is optional — unset skips the budget alert.
+      TF_VAR_alert_email:           ${{ vars.ALERT_EMAIL }}
+      TF_VAR_billing_account_id:    ${{ vars.BILLING_ACCOUNT_ID }}
 
     steps:
       # ── 1. Source ───────────────────────────────────────────────────────────
