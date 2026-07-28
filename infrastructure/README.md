@@ -230,12 +230,26 @@ Import job *duration* is deliberately absent — Cloud Run publishes no
 execution-duration metric. The existing Cloud Trace spans (`import.gallery`,
 `import.picture.*`) cover that.
 
-To change a widget, edit the `.tftpl` and re-apply. Validate a change before
-committing, since malformed JSON only fails at apply time:
+To change a widget, edit the `.tftpl` and re-apply.
+
+**Validate before committing.** `dashboard_json` is an opaque string to
+Terraform, so `validate` and `plan` both pass on JSON the Monitoring API will
+reject — and the failure then lands on the apply-on-merge pipeline. A `jq` syntax
+check is not enough: the API also rejects valid JSON with the wrong fields (an
+`xyChart` threshold accepts only `value` and `label`, while a `scorecard`
+threshold also takes `color` and `direction`). Render it and POST it:
 
 ```bash
-terraform console <<<'templatefile("dashboards/mappics.json.tftpl", {project_id="p", service_name="s", job_name="j", backend_check_id="b", frontend_check_id="f"})' | sed '1d;$d' | jq -e . > /dev/null && echo "valid JSON"
+terraform console <<<'templatefile("dashboards/mappics.json.tftpl", {project_id="p", service_name="s", job_name="j", backend_check_id="b", frontend_check_id="f"})' | sed '1d;$d' | jq '.displayName="probe — delete me"' > /tmp/probe.json
 ```
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $(gcloud auth print-access-token)" -H "Content-Type: application/json" -d @/tmp/probe.json "https://monitoring.googleapis.com/v1/projects/$(gcloud config get-value project)/dashboards" | jq -c '{name, error: .error.message}'
+```
+
+A `name` in the response means the JSON is good — then **delete the probe** with
+`curl -X DELETE` on that name (it reports one error at a time, so expect to
+iterate).
 
 ### Verify the email channel
 
