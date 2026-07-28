@@ -190,6 +190,7 @@ In CI/CD (step 18) this is injected automatically from the Terraform outputs.
 | Uptime checks ×2 | Poll the backend `/actuator/health` and the Hosting URL every 5 min from all regions |
 | Alert policies ×5 | Backend down, frontend down, 5xx responses, import job failed, monthly budget |
 | Email notification channel | Single destination for every alert |
+| `Mappics` dashboard | Traffic, latency, saturation, uptime, import job and error logs |
 
 ---
 
@@ -205,6 +206,36 @@ changes, and free at this scale.
 | 5xx responses | Any 5xx from `mappics-backend` in a 5-minute window (traffic is low, so any 5xx is signal) |
 | Import job failed | A `mappics-import-job` execution ends with `result=failed` — the job already retries 3×, so this means retries are exhausted |
 | Monthly budget | Spend reaches 90% then 100% of €10 in the calendar month |
+
+### Dashboard
+
+`gcp/dashboard.tf` creates a single **Mappics** dashboard (Monitoring →
+Dashboards). The layout lives in `gcp/dashboards/mappics.json.tftpl` — a
+template rather than plain JSON because the uptime check IDs are only known
+after apply.
+
+| Row | Widgets |
+|---|---|
+| Top line | Backend uptime, frontend uptime, 5xx count, p95 latency (scorecards) |
+| Traffic | Request rate by response class · latency p50/p95/p99 |
+| Saturation | Memory p99 (85% marker) · CPU p99 · cold start p95 |
+| Availability | Fraction of uptime checkers passing · import executions by result |
+| Import & errors | Executions in flight · `severity>=ERROR` logs from service and job |
+
+Memory is the widget worth watching: image resizing against a 1Gi limit makes
+OOM the most likely failure mode. Cold start latency matters because the
+service runs with `cpu_idle=true`.
+
+Import job *duration* is deliberately absent — Cloud Run publishes no
+execution-duration metric. The existing Cloud Trace spans (`import.gallery`,
+`import.picture.*`) cover that.
+
+To change a widget, edit the `.tftpl` and re-apply. Validate a change before
+committing, since malformed JSON only fails at apply time:
+
+```bash
+terraform console <<<'templatefile("dashboards/mappics.json.tftpl", {project_id="p", service_name="s", job_name="j", backend_check_id="b", frontend_check_id="f"})' | sed '1d;$d' | jq -e . > /dev/null && echo "valid JSON"
+```
 
 ### Verify the email channel
 
