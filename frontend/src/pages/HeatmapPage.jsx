@@ -7,6 +7,7 @@ import { fetchPictures } from '../api/client.js'
 import BasemapLayer from '../components/BasemapLayer.jsx'
 import AppHeader from '../components/AppHeader.jsx'
 import useDocumentTitle from '../useDocumentTitle.js'
+import { ZOOM_OPTIONS } from '../mapOptions.js'
 import './HeatmapPage.css'
 
 // Below this zoom the world is a heatmap; at/above it, individual (clustered)
@@ -104,6 +105,7 @@ export default function HeatmapPage() {
         worldCopyJump
         zoomControl={false}
         className="leaflet-map"
+        {...ZOOM_OPTIONS}
       >
         <BasemapLayer defaultKey="dark" storageKey="mappics.basemap.heatmap" />
         <ZoomControl position="bottomright" />

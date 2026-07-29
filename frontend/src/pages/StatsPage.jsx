@@ -5,6 +5,7 @@ import { fetchStatistics } from '../api/client.js'
 import BasemapLayer from '../components/BasemapLayer.jsx'
 import AppHeader from '../components/AppHeader.jsx'
 import useDocumentTitle from '../useDocumentTitle.js'
+import { ZOOM_OPTIONS } from '../mapOptions.js'
 import './StatsPage.css'
 
 const latLabel = v => `${Math.abs(v).toFixed(2)}° ${v >= 0 ? 'N' : 'S'}`
@@ -76,6 +77,7 @@ export default function StatsPage() {
         worldCopyJump
         zoomControl={false}
         className="leaflet-map"
+        {...ZOOM_OPTIONS}
       >
         <BasemapLayer defaultKey="dark" storageKey="mappics.basemap.stats" />
         <ZoomControl position="bottomright" />

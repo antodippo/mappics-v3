@@ -6,6 +6,7 @@ import { fetchGallery } from '../api/client.js'
 import PictureOverlay from '../components/PictureOverlay.jsx'
 import BasemapLayer from '../components/BasemapLayer.jsx'
 import useDocumentTitle from '../useDocumentTitle.js'
+import { ZOOM_OPTIONS } from '../mapOptions.js'
 import './GalleryPage.css'
 
 function makeIcon(thumbnailUrl, selected) {
@@ -99,6 +100,7 @@ export default function GalleryPage() {
             zoom={8}
             zoomControl={false}
             className="gallery-leaflet-map"
+            {...ZOOM_OPTIONS}
           >
             <BasemapLayer />
             <ZoomControl position="bottomright" />

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import BasemapLayer from './BasemapLayer.jsx'
+import { ZOOM_OPTIONS } from '../mapOptions.js'
 import './PictureOverlay.css'
 
 const miniPin = L.divIcon({
@@ -66,6 +67,7 @@ export default function PictureOverlay({ picture, index, total, onClose, onPrev,
                 zoomControl={false}
                 attributionControl={false}
                 className="mini-map"
+                {...ZOOM_OPTIONS}
               >
                 <BasemapLayer compact />
                 <RecenterMap lat={gps.latitude} lng={gps.longitude} />
