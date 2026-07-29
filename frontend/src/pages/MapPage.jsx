@@ -6,6 +6,7 @@ import { fetchGalleries } from '../api/client.js'
 import BasemapLayer from '../components/BasemapLayer.jsx'
 import AppHeader from '../components/AppHeader.jsx'
 import useDocumentTitle from '../useDocumentTitle.js'
+import { ZOOM_OPTIONS } from '../mapOptions.js'
 import './MapPage.css'
 
 function FitBounds({ galleries }) {
@@ -61,6 +62,7 @@ export default function MapPage() {
         worldCopyJump
         zoomControl={false}
         className="leaflet-map"
+        {...ZOOM_OPTIONS}
       >
         <BasemapLayer />
         <ZoomControl position="bottomright" />
