@@ -6,7 +6,7 @@ NPM   := npm
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev build preview lint test test-watch clean
+.PHONY: help install dev build preview lint test test-watch basemaps basemaps-baseline clean
 
 help: ## List available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -36,6 +36,12 @@ test: ## Run the Vitest suite once (jsdom, CI-friendly)
 
 test-watch: ## Run Vitest in watch mode
 	$(NPM) run test:watch
+
+basemaps: ## Check the live basemap tiles against the recorded baseline
+	node scripts/check-basemaps.mjs
+
+basemaps-baseline: ## Re-record the basemap tile baseline (commit the result)
+	node scripts/check-basemaps.mjs --update
 
 clean: ## Remove build output
 	rm -rf dist

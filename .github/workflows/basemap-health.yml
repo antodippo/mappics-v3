@@ -1,0 +1,129 @@
+name: Basemap health
+
+# Guards against a tile provider changing what it serves under a URL that keeps
+# working. In August 2026 CARTO began stamping "API KEY REQUIRED" into keyless
+# tiles while still returning 200 OK with a well-formed PNG — invisible to
+# status codes, uptime checks and Leaflet's tileerror event, because the text
+# was pixels. This job compares the tile bytes against a committed baseline.
+#
+# A mismatch is not automatically a breakage: providers re-render tiles. The
+# issue this opens says how to tell the difference, and re-recording is a
+# workflow_dispatch away.
+
+on:
+  schedule:
+    # Mondays 06:00 UTC. Weekly is enough — this catches policy changes, not outages.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_baseline:
+        description: 'Re-record the tile baseline and commit it'
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    name: Check basemap tiles
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # only the re-baseline path writes; the check itself reads
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Node 22 matches the floor in frontend.yml. No npm ci: the script has zero
+      # dependencies and imports src/basemaps.js directly.
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Check tiles
+        id: check
+        continue-on-error: true
+        working-directory: frontend
+        run: |
+          ARGS=""
+          if [ "${{ inputs.update_baseline }}" = "true" ]; then ARGS="--update"; fi
+          node scripts/check-basemaps.mjs $ARGS 2>&1 | tee "$RUNNER_TEMP/report.txt"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Commit the new baseline
+        if: inputs.update_baseline && steps.check.outcome == 'success'
+        run: |
+          if git diff --quiet -- frontend/scripts/basemap-baseline.json; then
+            echo "Baseline unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/scripts/basemap-baseline.json
+          git commit -m "chore(frontend): re-record basemap tile baseline"
+          git push
+
+      - name: Report
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs')
+            const failed = '${{ steps.check.outcome }}' === 'failure'
+            const report = fs.readFileSync(process.env.RUNNER_TEMP + '/report.txt', 'utf8')
+            const label = 'basemap-health'
+            const title = 'Basemap health check failed'
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+
+            const open = await github.rest.issues.listForRepo({
+              ...context.repo, state: 'open', labels: label,
+            })
+            const existing = open.data[0]
+
+            if (!failed) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  ...context.repo, issue_number: existing.number,
+                  body: `Basemap tiles match the baseline again. Closing.\n\n[Run](${run})`,
+                })
+                await github.rest.issues.update({
+                  ...context.repo, issue_number: existing.number,
+                  state: 'closed', state_reason: 'completed',
+                })
+              }
+              return
+            }
+
+            const body = [
+              'One or more basemap tiles no longer match the recorded baseline.',
+              '',
+              '```',
+              report.trim(),
+              '```',
+              '',
+              'Open the failing tile URLs in a browser. If the tiles render correctly,',
+              'the provider simply re-rendered them — re-record the baseline by running',
+              'this workflow with `update_baseline` checked. If a tile is watermarked,',
+              'blank or wrong, the provider changed its terms and the basemap in',
+              '`frontend/src/basemaps.js` needs replacing.',
+              '',
+              `[Run](${run})`,
+            ].join('\n')
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: existing.number, body,
+              })
+              return
+            }
+
+            await github.rest.issues.createLabel({
+              ...context.repo, name: label, color: 'd93f0b',
+              description: 'Map tile providers changed or went down',
+            }).catch(() => {}) // already exists
+
+            await github.rest.issues.create({ ...context.repo, title, labels: [label], body })
+
+      - name: Fail if tiles did not match
+        if: steps.check.outcome == 'failure'
+        run: exit 1

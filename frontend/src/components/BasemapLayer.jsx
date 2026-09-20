@@ -30,7 +30,21 @@ export default function BasemapLayer({
         attribution={base.attribution}
         subdomains={base.subdomains ?? 'abc'}
         maxZoom={base.maxZoom}
+        maxNativeZoom={base.maxNativeZoom}
+        zIndex={1}
       />
+      {/* Labels, borders and roads composited over the base. No attribution here:
+          Leaflet concatenates attribution strings without deduplicating, so the
+          shared Esri credit would print once per layer. */}
+      {(base.overlays ?? []).map((overlay, i) => (
+        <TileLayer
+          key={`${base.key}:${overlay.url}`}
+          url={overlay.url}
+          maxZoom={base.maxZoom}
+          maxNativeZoom={overlay.maxNativeZoom}
+          zIndex={2 + i}
+        />
+      ))}
       <BasemapControl activeKey={base.key} onSelect={select} compact={compact} />
     </>
   )
