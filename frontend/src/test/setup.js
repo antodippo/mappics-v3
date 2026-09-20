@@ -11,9 +11,12 @@ vi.mock('react-leaflet', async () => {
   const React = await import('react')
   const box = (testid) => ({ children }) =>
     React.createElement('div', { 'data-testid': testid }, children)
+  // TileLayer forwards its url so tests can assert which tiles a basemap renders.
+  const tileBox = (testid) => ({ url, children }) =>
+    React.createElement('div', { 'data-testid': testid, 'data-url': url }, children)
   return {
     MapContainer: box('map-container'),
-    TileLayer: box('tile-layer'),
+    TileLayer: tileBox('tile-layer'),
     Marker: box('marker'),
     Tooltip: box('tooltip'),
     ZoomControl: box('zoom-control'),
