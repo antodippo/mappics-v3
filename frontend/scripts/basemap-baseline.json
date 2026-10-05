@@ -1,1 +1,50 @@
-{}
+{
+  "dark": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/4/5/8",
+    "sha256": "c9f6d0e0e514e06447f377d1d0f22dca9a015dec9ba30214b78e0cebb3c2de97",
+    "bytes": 9347,
+    "capturedAt": "2026-10-05"
+  },
+  "dark:overlay-0": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/4/5/8",
+    "sha256": "e3e6848e42f0d8215036d5a19fd11f802cd912173e078d126e678021b769f6d7",
+    "bytes": 12646,
+    "capturedAt": "2026-10-05"
+  },
+  "light": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/4/5/8",
+    "sha256": "cedc95a0eb12a6dfa56992476e776392b170a56b1ba7e7e35d962d8cab5b836e",
+    "bytes": 18569,
+    "capturedAt": "2026-10-05"
+  },
+  "light:overlay-0": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/4/5/8",
+    "sha256": "b95a25f2834f06da9d10c920c56e27dbcf22e6f9e6850cfa3d0ceb50c4b2d584",
+    "bytes": 11460,
+    "capturedAt": "2026-10-05"
+  },
+  "satellite": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/4/5/8",
+    "sha256": "3e51cc2fde3671788de20b4c4a8c1d827c586d534a76f3b683aa6b87c3f5fc5f",
+    "bytes": 17768,
+    "capturedAt": "2026-10-05"
+  },
+  "satellite:overlay-0": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/4/5/8",
+    "sha256": "3b1ce04a3562a89602594ae619d5d309635b1720baac075e819cccb50d2e4d7c",
+    "bytes": 31497,
+    "capturedAt": "2026-10-05"
+  },
+  "satellite:overlay-1": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/4/5/8",
+    "sha256": "4b9b0ebeaf3e236068ed39e8401f4edf036aadea7cba50ca7388d198821c1898",
+    "bytes": 40179,
+    "capturedAt": "2026-10-05"
+  },
+  "streets": {
+    "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/4/5/8",
+    "sha256": "ea20f4d0e78968406c2ea99c28dcc4f08628e5ccf044eac867efe99bcb6b0b38",
+    "bytes": 58074,
+    "capturedAt": "2026-10-05"
+  }
+}

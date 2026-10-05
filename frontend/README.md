@@ -53,12 +53,15 @@ make basemaps-baseline   # re-record it, then commit the result
 ```
 
 `.github/workflows/basemap-health.yml` runs the check every Monday and opens (or comments
-on) a `basemap-health` issue when it fails. The baseline records itself: on the first run
-there is nothing to compare against, so the job seeds it and commits the result instead of
-reporting every layer as broken. After that a missing entry — a basemap added without
+on) a `basemap-health` issue when it fails. A missing entry — a basemap added without
 re-recording — is a real failure and does raise an issue.
+
+The job never writes to git: `main` is protected, so it cannot push, and a PR opened with
+the workflow token would not trigger the required checks. An empty baseline therefore does
+not fail the run; it passes with a warning and prints a freshly recorded baseline in the job
+summary, for you to commit.
 
 Because providers do legitimately re-render their tiles, a mismatch means "look at this",
 not always "broken": open the reported URL, and if the tile is fine, re-record the baseline —
-either with `make basemaps-baseline`, or via `workflow_dispatch` with `update_baseline`
-checked, which commits it for you.
+either with `make basemaps-baseline`, or by running the workflow via `workflow_dispatch`
+with `update_baseline` checked and committing the JSON from its job summary.
