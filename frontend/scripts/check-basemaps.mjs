@@ -12,8 +12,8 @@
 //   node scripts/check-basemaps.mjs --update   re-record the baseline
 //
 // Exits 0 when every tile matches, 1 when one does not, and 2 when no baseline
-// has been recorded yet. The third code keeps a first run from looking like a
-// regression: basemap-health.yml seeds the baseline on a 2 and only alerts on a 1.
+// has been recorded yet. The third code keeps a missing baseline from looking
+// like a regression: basemap-health.yml only alerts on a 1.
 //
 // Providers do legitimately re-render their tiles, so a hash mismatch means
 // "look at this", not always "broken". Confirm the tile looks right, then

@@ -10,9 +10,10 @@ name: Basemap health
 # issue this opens says how to tell the difference, and re-recording is a
 # workflow_dispatch away.
 #
-# The baseline records itself: on the first run there is nothing to compare
-# against, so the job seeds it and commits the result rather than reporting
-# every layer as broken.
+# This job never writes to git. main is protected, so a push is rejected, and a
+# PR opened with GITHUB_TOKEN would not trigger the required checks. When there
+# is no baseline yet, or one is re-recorded on request, it goes to the job
+# summary instead, ready to commit through the normal PR flow.
 
 on:
   schedule:
@@ -21,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       update_baseline:
-        description: 'Re-record the tile baseline and commit it'
+        description: 'Record a fresh baseline and print it to the job summary'
         type: boolean
         default: false
 
@@ -31,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # only the re-baseline path writes; the check itself reads
+      contents: read
       issues: write
 
     steps:
@@ -60,32 +61,34 @@ jobs:
           echo "code=$code" >> "$GITHUB_OUTPUT"
 
       # No continue-on-error: the script refuses to record from unreachable
-      # tiles, and a seed that cannot run should fail the job.
-      - name: Seed the baseline
-        if: steps.check.outputs.code == '2'
+      # tiles, and a recording that cannot run should fail the job.
+      - name: Record the baseline
+        if: (inputs.update_baseline && steps.check.outputs.code == '0') || steps.check.outputs.code == '2'
         working-directory: frontend
-        run: node scripts/check-basemaps.mjs --update 2>&1 | tee -a "$RUNNER_TEMP/report.txt"
-
-      - name: Commit the new baseline
-        if: inputs.update_baseline || steps.check.outputs.code == '2'
         run: |
-          if git diff --quiet -- frontend/scripts/basemap-baseline.json; then
-            echo "Baseline unchanged."
-            exit 0
+          if [ "${{ steps.check.outputs.code }}" = "2" ]; then
+            node scripts/check-basemaps.mjs --update 2>&1 | tee -a "$RUNNER_TEMP/report.txt"
+            echo "::warning::No basemap baseline is committed, so nothing was checked. Commit the one in the job summary."
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/scripts/basemap-baseline.json
-          git commit -m "chore(frontend): re-record basemap tile baseline"
-          git push
+          cat scripts/basemap-baseline.json
+          {
+            echo '### Basemap baseline'
+            echo
+            echo 'Commit this as `frontend/scripts/basemap-baseline.json`:'
+            echo
+            echo '```json'
+            cat scripts/basemap-baseline.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Report
+        if: ${{ !inputs.update_baseline }}
         uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs')
             const code = '${{ steps.check.outputs.code }}'
-            if (code === '2') return // first run seeded the baseline; nothing to report
+            if (code === '2') return // nothing committed to compare against yet
             const failed = code === '1'
             const report = fs.readFileSync(process.env.RUNNER_TEMP + '/report.txt', 'utf8')
             const label = 'basemap-health'
