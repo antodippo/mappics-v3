@@ -62,6 +62,11 @@ jobs:
 
       # No continue-on-error: the script refuses to record from unreachable
       # tiles, and a recording that cannot run should fail the job.
+      #
+      # With update_baseline the check step above already ran --update, so code 0
+      # means the file is freshly recorded and only needs printing. --update never
+      # compares hashes, so code 1 there means the tiles were unreachable and there
+      # is nothing worth printing; the final step fails the job.
       - name: Record the baseline
         if: (inputs.update_baseline && steps.check.outputs.code == '0') || steps.check.outputs.code == '2'
         working-directory: frontend
